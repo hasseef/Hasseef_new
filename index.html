@@ -3,7 +3,8 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>حصيف — النموذج الأولي</title>
+  <title>حصيف — النموذج الأولي ثنائي اللغة</title>
+
   <!-- Tailwind via CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
@@ -11,36 +12,53 @@
       theme: {
         extend: {
           colors: {
-            primary: { DEFAULT: '#0f9f6e' }, /* أخضر أنيق */
-            accent: { DEFAULT: '#c6a44b' },  /* ذهبي */
-            ink: { DEFAULT: '#0f172a' },     /* نص غامق */
-            stone: { DEFAULT: '#f8fafc' }    /* خلفية فاتحة */
+            primary: { DEFAULT: '#0f9f6e' },
+            accent: { DEFAULT: '#c6a44b' },
+            ink: { DEFAULT: '#0f172a' },
+            stone: { DEFAULT: '#f8fafc' }
           },
-          boxShadow: {
-            soft: '0 10px 20px rgba(2, 6, 23, 0.08)'
-          },
-          borderRadius: {
-            xl2: '1rem'
-          }
+          boxShadow: { soft: '0 10px 20px rgba(2,6,23,.08)' },
+          borderRadius: { xl2: '1rem' }
         }
       }
     }
   </script>
+
   <!-- Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- Leaflet (Map) -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+
+  <!-- jsPDF + AutoTable (PDF export) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+
+  <!-- SheetJS (Excel export) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
   <style>
-    /* تحسينات طفيفة */
     .glass { backdrop-filter: blur(8px); background: rgba(255,255,255,.7); }
     .scroll-slim::-webkit-scrollbar{width:8px;height:8px}
     .scroll-slim::-webkit-scrollbar-thumb{background:#e5e7eb;border-radius:8px}
     .rtl-input { direction: rtl; }
-    /* جدول بسيط متجاوب */
     table { border-collapse: separate; border-spacing: 0 8px; }
     thead th { font-weight:600; color:#0f172a; }
     tbody tr { background:#fff; box-shadow: 0 1px 2px rgba(2,6,23,.05); }
     tbody td { border-top: 1px solid #f1f5f9; border-bottom:1px solid #f1f5f9; }
     tbody td:first-child { border-right:1px solid #f1f5f9; border-radius: .5rem 0 0 .5rem; }
     tbody td:last-child { border-left:1px solid #f1f5f9; border-radius: 0 .5rem .5rem 0; }
+    #leafletMap { height: 340px; }
+    /* شعارات */
+    .logo-vision { height: 34px; }
+    .logo-talbiya { height: 40px; }
+    .logo-hasseef { height: 46px; }
+    @media (max-width: 640px){
+      .logo-vision { height: 28px; }
+      .logo-talbiya { height: 32px; }
+      .logo-hasseef { height: 38px; }
+    }
   </style>
 </head>
 <body class="bg-stone text-ink antialiased">
@@ -48,44 +66,58 @@
   <!-- Topbar -->
   <header class="sticky top-0 z-40 glass shadow-soft">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center gap-3">
-      <div class="flex items-center gap-2">
-        <div class="w-9 h-9 rounded-xl2 bg-primary/10 flex items-center justify-center">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-            <path d="M12 3l7 4v10l-7 4-7-4V7l7-4z" stroke="#0f9f6e" stroke-width="1.5"/>
-            <path d="M9 12l3 2 3-2-3-2-3 2z" stroke="#0f9f6e" stroke-width="1.5"/>
-          </svg>
-        </div>
-        <div class="leading-5">
-          <div class="font-semibold">حصيف</div>
-          <div class="text-xs text-slate-500">منصة تكامل تنموي مرتبطة برؤية 2030</div>
+
+      <!-- يمين: شعار حصيف -->
+      <div class="flex items-center gap-2 order-1 md:order-1">
+        <img src="assets/hasseef.png" alt="حصيف" class="logo-hasseef select-none" loading="eager" decoding="async" />
+        <div class="leading-5 hidden sm:block">
+          <div class="font-semibold" data-i18n="brand">حصيف</div>
+          <div class="text-xs text-slate-500" data-i18n="brandSub">منصة تكامل تنموي مرتبطة برؤية 2030</div>
         </div>
       </div>
 
-      <div class="flex-1"></div>
+      <div class="flex-1 order-2"></div>
 
-      <!-- Global Search -->
-      <div class="relative w-full max-w-xl">
-        <input id="globalSearch" type="search" class="rtl-input w-full rounded-xl2 border border-slate-200 bg-white/70 focus:outline-none focus:ring-2 focus:ring-primary/30 px-4 py-2 text-sm"
-               placeholder="ابحث عن: مشروع، فعالية، وظيفة، منحة، مرفق..." />
-        <button class="absolute left-2 top-1/2 -translate-y-1/2 text-slate-500" aria-label="Search">
-          <i data-lucide="search" class="w-5 h-5"></i>
+      <!-- وسط: بحث + لغة + حساب -->
+      <div class="order-3 flex items-center gap-3 w-full max-w-xl">
+        <!-- Language -->
+        <div class="flex items-center gap-2">
+          <button id="btnAR" class="px-2 py-1 rounded-lg bg-primary text-white text-xs">عربي</button>
+          <button id="btnEN" class="px-2 py-1 rounded-lg bg-slate-900 text-white text-xs">English</button>
+        </div>
+
+        <!-- Search -->
+        <div class="relative flex-1">
+          <input id="globalSearch" type="search" class="rtl-input w-full rounded-xl2 border border-slate-200 bg-white/70 focus:outline-none focus:ring-2 focus:ring-primary/30 px-4 py-2 text-sm"
+            placeholder="ابحث عن: مشروع، فعالية، وظيفة، منحة، مرفق..." />
+          <button class="absolute left-2 top-1/2 -translate-y-1/2 text-slate-500" aria-label="Search">
+            <i data-lucide="search" class="w-5 h-5"></i>
+          </button>
+        </div>
+
+        <!-- Notifications / Profile -->
+        <button id="btnNotifications" class="relative p-2 rounded-xl2 hover:bg-primary/10 transition" aria-label="Notifications">
+          <i data-lucide="bell" class="w-5 h-5"></i>
+          <span class="absolute -top-1 -right-1 bg-primary text-white text-[10px] leading-4 rounded-full px-1.5">3</span>
+        </button>
+        <div class="h-6 w-px bg-slate-200"></div>
+        <button class="flex items-center gap-2 p-1 hover:bg-primary/10 rounded-xl2 transition" aria-label="Account">
+          <div class="w-8 h-8 rounded-full bg-gradient-to-br from-primary/20 to-accent/20"></div>
+          <div class="text-sm" data-i18n="myAccount">حسابي</div>
+          <i data-lucide="chevron-down" class="w-4 h-4"></i>
         </button>
       </div>
 
-      <!-- Notifications / Profile -->
-      <button id="btnNotifications" class="relative p-2 rounded-xl2 hover:bg-primary/10 transition" aria-label="Notifications">
-        <i data-lucide="bell" class="w-5 h-5"></i>
-        <span class="absolute -top-1 -right-1 bg-primary text-white text-[10px] leading-4 rounded-full px-1.5">3</span>
-      </button>
-      <div class="h-6 w-px bg-slate-200"></div>
-      <button class="flex items-center gap-2 p-1 hover:bg-primary/10 rounded-xl2 transition" aria-label="Account">
-        <div class="w-8 h-8 rounded-full bg-gradient-to-br from-primary/20 to-accent/20"></div>
-        <div class="text-sm">حسابي</div>
-        <i data-lucide="chevron-down" class="w-4 h-4"></i>
-      </button>
+      <!-- يسار: رؤية 2030 + تلبية -->
+      <div class="order-4 flex items-center gap-3">
+        <img src="assets/Vision2030.png" alt="Vision 2030" class="logo-vision select-none" loading="eager" decoding="async" />
+        <img src="assets/talbiya.png" alt="مبادرة تلبية" class="logo-talbiya select-none" loading="eager" decoding="async" />
+      </div>
+
     </div>
   </header>
 
+  <!-- Layout -->
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 grid grid-cols-12 gap-6">
 
     <!-- Sidebar -->
@@ -93,41 +125,37 @@
       <div class="bg-white rounded-2xl shadow-soft p-4 space-y-4">
 
         <div>
-          <div class="text-xs font-semibold text-slate-500 mb-2">القسم العام</div>
+          <div class="text-xs font-semibold text-slate-500 mb-2" data-i18n="generalSec">القسم العام</div>
           <nav class="space-y-1" id="navMain">
             <button data-route="dashboard" class="navlink w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-slate-50">
-              <span class="flex items-center gap-2"><i data-lucide="layout-dashboard" class="w-4 h-4"></i> الرئيسية</span>
+              <span class="flex items-center gap-2"><i data-lucide="layout-dashboard" class="w-4 h-4"></i> <span data-i18n="home">الرئيسية</span></span>
               <span class="text-xs text-slate-400">Alt+1</span>
             </button>
             <button data-route="map" class="navlink w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-slate-50">
-              <span class="flex items-center gap-2"><i data-lucide="map" class="w-4 h-4"></i> خريطة المناطق</span>
+              <span class="flex items-center gap-2"><i data-lucide="map" class="w-4 h-4"></i> <span data-i18n="regionsMap">خريطة المناطق</span></span>
             </button>
             <button data-route="stories" class="navlink w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-slate-50">
-              <span class="flex items-center gap-2"><i data-lucide="sparkles" class="w-4 h-4"></i> قصص الأثر</span>
+              <span class="flex items-center gap-2"><i data-lucide="sparkles" class="w-4 h-4"></i> <span data-i18n="impactStories">قصص الأثر</span></span>
             </button>
           </nav>
         </div>
 
         <div class="pt-2">
-          <div class="text-xs font-semibold text-slate-500 mb-2">الحسابات</div>
-          <div class="grid grid-cols-2 gap-2" id="accountsGrid">
-            <!-- سيتم تعبئته ديناميكيًا -->
-          </div>
+          <div class="text-xs font-semibold text-slate-500 mb-2" data-i18n="accounts">الحسابات</div>
+          <div class="grid grid-cols-2 gap-2" id="accountsGrid"></div>
         </div>
 
         <div class="pt-2">
-          <div class="text-xs font-semibold text-slate-500 mb-2">المكوّنات</div>
-          <div class="grid grid-cols-2 sm:grid-cols-3 gap-2" id="modulesGrid">
-            <!-- يتم توليده -->
-          </div>
+          <div class="text-xs font-semibold text-slate-500 mb-2" data-i18n="modules">المكوّنات</div>
+          <div class="grid grid-cols-2 sm:grid-cols-3 gap-2" id="modulesGrid"></div>
         </div>
 
       </div>
       <div class="mt-4 bg-white rounded-2xl shadow-soft p-4">
-        <div class="text-xs font-semibold text-slate-500 mb-2">إجراءات سريعة</div>
+        <div class="text-xs font-semibold text-slate-500 mb-2" data-i18n="quickActions">إجراءات سريعة</div>
         <div class="grid grid-cols-2 gap-2">
-          <button id="btnNewProject" class="px-3 py-2 rounded-lg text-sm bg-primary text-white hover:opacity-90">+ مشروع</button>
-          <button id="btnNewEvent" class="px-3 py-2 rounded-lg text-sm bg-slate-900 text-white hover:opacity-90">+ فعالية</button>
+          <button id="btnNewProject" class="px-3 py-2 rounded-lg text-sm bg-primary text-white hover:opacity-90" data-i18n="addProject">+ مشروع</button>
+          <button id="btnNewEvent" class="px-3 py-2 rounded-lg text-sm bg-slate-900 text-white hover:opacity-90" data-i18n="addEvent">+ فعالية</button>
         </div>
       </div>
     </aside>
@@ -138,70 +166,51 @@
       <!-- KPI cards -->
       <section id="dashboard" class="view">
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <div class="bg-white rounded-2xl p-4 shadow-soft">
-            <div class="text-xs text-slate-500">المشاريع النشطة</div>
-            <div id="kpiProjects" class="text-2xl font-bold mt-1">—</div>
-          </div>
-          <div class="bg-white rounded-2xl p-4 shadow-soft">
-            <div class="text-xs text-slate-500">قيمة التمويل (ر.س)</div>
-            <div id="kpiFunding" class="text-2xl font-bold mt-1">—</div>
-          </div>
-          <div class="bg-white rounded-2xl p-4 shadow-soft">
-            <div class="text-xs text-slate-500">الفعاليات القادمة</div>
-            <div id="kpiEvents" class="text-2xl font-bold mt-1">—</div>
-          </div>
-          <div class="bg-white rounded-2xl p-4 shadow-soft">
-            <div class="text-xs text-slate-500">فرص التطوع</div>
-            <div id="kpiVol" class="text-2xl font-bold mt-1">—</div>
-          </div>
+          <div class="bg-white rounded-2xl p-4 shadow-soft"><div class="text-xs text-slate-500" data-i18n="kpiActiveProjects">المشاريع النشطة</div><div id="kpiProjects" class="text-2xl font-bold mt-1">—</div></div>
+          <div class="bg-white rounded-2xl p-4 shadow-soft"><div class="text-xs text-slate-500" data-i18n="kpiFunds">قيمة التمويل (ر.س)</div><div id="kpiFunding" class="text-2xl font-bold mt-1">—</div></div>
+          <div class="bg-white rounded-2xl p-4 shadow-soft"><div class="text-xs text-slate-500" data-i18n="kpiUpcomingEvents">الفعاليات القادمة</div><div id="kpiEvents" class="text-2xl font-bold mt-1">—</div></div>
+          <div class="bg-white rounded-2xl p-4 shadow-soft"><div class="text-xs text-slate-500" data-i18n="kpiVolOpps">فرص التطوع</div><div id="kpiVol" class="text-2xl font-bold mt-1">—</div></div>
         </div>
 
-        <!-- Quick filters -->
+        <!-- Filters + exports -->
         <div class="bg-white rounded-2xl p-4 shadow-soft mt-4">
           <div class="flex flex-wrap items-center gap-2">
             <select id="filterRegion" class="rtl-input border rounded-lg px-3 py-2 text-sm">
-              <option value="">كل المناطق</option>
-              <option>حائل</option>
-              <option>الرياض</option>
-              <option>مكة المكرمة</option>
+              <option value="" data-i18n="allRegions">كل المناطق</option>
+              <option>حائل</option><option>الرياض</option><option>مكة المكرمة</option>
             </select>
             <select id="filterSector" class="rtl-input border rounded-lg px-3 py-2 text-sm">
-              <option value="">كل القطاعات</option>
-              <option>حكومي</option>
-              <option>خاص</option>
-              <option>غير ربحي</option>
-              <option>جامعات</option>
+              <option value="" data-i18n="allSectors">كل القطاعات</option>
+              <option>حكومي</option><option>خاص</option><option>غير ربحي</option><option>جامعات</option>
             </select>
             <select id="filterProgram" class="rtl-input border rounded-lg px-3 py-2 text-sm">
-              <option value="">برامج الرؤية</option>
-              <option>التحول الوطني</option>
-              <option>جودة الحياة</option>
-              <option>تنمية القدرات البشرية</option>
-              <option>تطوير القطاع المالي</option>
-              <option>الصناعة الوطنية والخدمات اللوجستية</option>
-              <option>الإسكان</option>
+              <option value="" data-i18n="visionPrograms">برامج الرؤية</option>
+              <option>التحول الوطني</option><option>جودة الحياة</option><option>تنمية القدرات البشرية</option>
+              <option>تطوير القطاع المالي</option><option>الصناعة الوطنية والخدمات اللوجستية</option><option>الإسكان</option>
             </select>
             <div class="flex-1"></div>
-            <button id="btnResetFilters" class="text-sm px-3 py-2 rounded-lg bg-slate-100 hover:bg-slate-200">إعادة الضبط</button>
+            <button id="btnExportPDF" class="text-sm px-3 py-2 rounded-lg bg-slate-900 text-white" data-i18n="exportPDF">تصدير PDF</button>
+            <button id="btnExportXLSX" class="text-sm px-3 py-2 rounded-lg bg-slate-100" data-i18n="exportXLSX">تصدير Excel</button>
+            <button id="btnResetFilters" class="text-sm px-3 py-2 rounded-lg bg-slate-100 hover:bg-slate-200" data-i18n="reset">إعادة الضبط</button>
           </div>
         </div>
 
         <!-- Projects Table -->
         <div class="bg-white rounded-2xl p-4 shadow-soft mt-4">
           <div class="flex items-center justify-between mb-2">
-            <div class="font-semibold">المشاريع</div>
-            <div class="text-xs text-slate-500">نموذج عرض — للتجربة فقط</div>
+            <div class="font-semibold" data-i18n="projects">المشاريع</div>
+            <div class="text-xs text-slate-500" data-i18n="demoNote">نموذج عرض — للتجربة فقط</div>
           </div>
           <div class="overflow-auto scroll-slim">
-            <table class="w-full text-sm">
+            <table class="w-full text-sm" id="projectsTable">
               <thead>
                 <tr class="text-right text-slate-500">
-                  <th class="px-3 py-2">المشروع</th>
-                  <th class="px-3 py-2">القطاع</th>
-                  <th class="px-3 py-2">المنطقة</th>
-                  <th class="px-3 py-2">البرنامج</th>
-                  <th class="px-3 py-2">التمويل (ر.س)</th>
-                  <th class="px-3 py-2">الحالة</th>
+                  <th class="px-3 py-2" data-i18n="thProject">المشروع</th>
+                  <th class="px-3 py-2" data-i18n="thSector">القطاع</th>
+                  <th class="px-3 py-2" data-i18n="thRegion">المنطقة</th>
+                  <th class="px-3 py-2" data-i18n="thProgram">البرنامج</th>
+                  <th class="px-3 py-2" data-i18n="thFund">التمويل (ر.س)</th>
+                  <th class="px-3 py-2" data-i18n="thStatus">الحالة</th>
                   <th class="px-3 py-2"></th>
                 </tr>
               </thead>
@@ -211,37 +220,22 @@
         </div>
       </section>
 
-      <!-- Map placeholder -->
+      <!-- Map -->
       <section id="map" class="view hidden">
         <div class="bg-white rounded-2xl p-6 shadow-soft">
           <div class="flex items-center justify-between">
-            <h2 class="text-lg font-semibold">خريطة المناطق (تجريبية)</h2>
-            <button class="px-3 py-2 rounded-lg bg-slate-900 text-white text-sm">تحميل CSV</button>
+            <h2 class="text-lg font-semibold" data-i18n="regionsMap">خريطة المناطق</h2>
+            <div class="text-xs text-slate-500">© <a href="https://www.openstreetmap.org/copyright" target="_blank" class="underline">OpenStreetMap</a>, © Leaflet</div>
           </div>
-          <div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div class="p-4 rounded-xl2 border">
-              <div class="text-sm">حائل</div>
-              <div class="text-xl font-bold mt-2"><span class="text-primary">12</span> مشروع</div>
-            </div>
-            <div class="p-4 rounded-xl2 border">
-              <div class="text-sm">الرياض</div>
-              <div class="text-xl font-bold mt-2"><span class="text-primary">18</span> مشروع</div>
-            </div>
-            <div class="p-4 rounded-xl2 border">
-              <div class="text-sm">مكة</div>
-              <div class="text-xl font-bold mt-2"><span class="text-primary">9</span> مشاريع</div>
-            </div>
-          </div>
-          <div class="mt-6 h-64 rounded-xl2 bg-gradient-to-tr from-primary/10 to-accent/10 flex items-center justify-center text-slate-500">
-            (مساحة خريطة تفاعلية لاحقًا — Leaflet)
-          </div>
+          <div class="mt-4" id="leafletMap" class="rounded-xl2"></div>
+          <div class="mt-3 text-xs text-slate-500" data-i18n="mapNote">الخريطة تجريبية وتعرض مؤشرات عدد المشاريع لكل منطقة.</div>
         </div>
       </section>
 
-      <!-- Stories placeholder -->
+      <!-- Stories -->
       <section id="stories" class="view hidden">
         <div class="bg-white rounded-2xl p-6 shadow-soft">
-          <h2 class="text-lg font-semibold mb-3">قصص أثر مختارة</h2>
+          <h2 class="text-lg font-semibold mb-3" data-i18n="impactStories">قصص أثر مختارة</h2>
           <div id="storiesWrap" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
         </div>
       </section>
@@ -249,36 +243,35 @@
     </main>
   </div>
 
-  <!-- Drawer: New Project -->
+  <!-- Drawers (Project/Event) -->
   <div id="drawerProject" class="fixed inset-0 z-50 hidden">
     <div class="absolute inset-0 bg-black/30" data-close-drawer></div>
     <div class="absolute left-0 top-0 bottom-0 w-full max-w-xl bg-white shadow-2xl p-6 overflow-y-auto">
       <div class="flex items-center justify-between sticky top-0 bg-white pb-3">
-        <h3 class="text-lg font-semibold">مشروع جديد</h3>
+        <h3 class="text-lg font-semibold" data-i18n="newProject">مشروع جديد</h3>
         <button class="p-2 hover:bg-slate-100 rounded-lg" data-close-drawer><i data-lucide="x" class="w-5 h-5"></i></button>
       </div>
-
       <form id="formProject" class="space-y-4 mt-3">
         <div>
-          <label class="text-sm">اسم المشروع</label>
+          <label class="text-sm" data-i18n="fldName">اسم المشروع</label>
           <input required class="rtl-input w-full mt-1 border rounded-lg px-3 py-2" name="name" />
         </div>
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="text-sm">القطاع</label>
+            <label class="text-sm" data-i18n="fldSector">القطاع</label>
             <select class="rtl-input w-full mt-1 border rounded-lg px-3 py-2" name="sector">
               <option>حكومي</option><option>خاص</option><option>غير ربحي</option><option>جامعات</option>
             </select>
           </div>
           <div>
-            <label class="text-sm">المنطقة</label>
+            <label class="text-sm" data-i18n="fldRegion">المنطقة</label>
             <select class="rtl-input w-full mt-1 border rounded-lg px-3 py-2" name="region">
               <option>حائل</option><option>الرياض</option><option>مكة المكرمة</option>
             </select>
           </div>
         </div>
         <div>
-          <label class="text-sm">برنامج الرؤية (6/27/96)</label>
+          <label class="text-sm" data-i18n="fldProgram">برنامج الرؤية (6/27/96)</label>
           <select class="rtl-input w-full mt-1 border rounded-lg px-3 py-2" name="program">
             <option>جودة الحياة</option><option>التحول الوطني</option><option>تنمية القدرات البشرية</option>
             <option>تطوير القطاع المالي</option><option>الصناعة الوطنية والخدمات اللوجستية</option><option>الإسكان</option>
@@ -286,60 +279,57 @@
         </div>
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="text-sm">التمويل المطلوب (ر.س)</label>
+            <label class="text-sm" data-i18n="fldFund">التمويل المطلوب (ر.س)</label>
             <input type="number" min="0" step="1000" class="rtl-input w-full mt-1 border rounded-lg px-3 py-2" name="fund" />
           </div>
           <div>
-            <label class="text-sm">الحالة</label>
+            <label class="text-sm" data-i18n="fldStatus">الحالة</label>
             <select class="rtl-input w-full mt-1 border rounded-lg px-3 py-2" name="status">
               <option>مسودة</option><option>قيد المراجعة</option><option>نشط</option>
             </select>
           </div>
         </div>
         <div>
-          <label class="text-sm">وصف موجز</label>
+          <label class="text-sm" data-i18n="fldDesc">وصف موجز</label>
           <textarea rows="3" class="rtl-input w-full mt-1 border rounded-lg px-3 py-2" name="desc"></textarea>
         </div>
-
         <div class="pt-2 flex items-center gap-2">
-          <button class="px-4 py-2 rounded-lg bg-primary text-white">حفظ</button>
-          <button class="px-4 py-2 rounded-lg bg-slate-100" type="button" data-close-drawer>إلغاء</button>
+          <button class="px-4 py-2 rounded-lg bg-primary text-white" data-i18n="save">حفظ</button>
+          <button class="px-4 py-2 rounded-lg bg-slate-100" type="button" data-close-drawer data-i18n="cancel">إلغاء</button>
         </div>
       </form>
     </div>
   </div>
 
-  <!-- Drawer: New Event -->
   <div id="drawerEvent" class="fixed inset-0 z-50 hidden">
     <div class="absolute inset-0 bg-black/30" data-close-drawer></div>
     <div class="absolute left-0 top-0 bottom-0 w-full max-w-xl bg-white shadow-2xl p-6 overflow-y-auto">
       <div class="flex items-center justify-between sticky top-0 bg-white pb-3">
-        <h3 class="text-lg font-semibold">فعالية جديدة</h3>
+        <h3 class="text-lg font-semibold" data-i18n="newEvent">فعالية جديدة</h3>
         <button class="p-2 hover:bg-slate-100 rounded-lg" data-close-drawer><i data-lucide="x" class="w-5 h-5"></i></button>
       </div>
-
       <form id="formEvent" class="space-y-4 mt-3">
         <div>
-          <label class="text-sm">عنوان الفعالية</label>
+          <label class="text-sm" data-i18n="evtTitle">عنوان الفعالية</label>
           <input required class="rtl-input w-full mt-1 border rounded-lg px-3 py-2" name="title" />
         </div>
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="text-sm">التاريخ</label>
+            <label class="text-sm" data-i18n="evtDate">التاريخ</label>
             <input type="date" class="rtl-input w-full mt-1 border rounded-lg px-3 py-2" name="date" />
           </div>
           <div>
-            <label class="text-sm">الموقع/المرفق</label>
+            <label class="text-sm" data-i18n="evtVenue">الموقع/المرفق</label>
             <input class="rtl-input w-full mt-1 border rounded-lg px-3 py-2" name="venue" placeholder="قاعة، مسرح..." />
           </div>
         </div>
         <div>
-          <label class="text-sm">الوصف</label>
+          <label class="text-sm" data-i18n="evtDesc">الوصف</label>
           <textarea rows="3" class="rtl-input w-full mt-1 border rounded-lg px-3 py-2" name="desc"></textarea>
         </div>
         <div class="pt-2 flex items-center gap-2">
-          <button class="px-4 py-2 rounded-lg bg-slate-900 text-white">حفظ</button>
-          <button class="px-4 py-2 rounded-lg bg-slate-100" type="button" data-close-drawer>إلغاء</button>
+          <button class="px-4 py-2 rounded-lg bg-slate-900 text-white" data-i18n="save">حفظ</button>
+          <button class="px-4 py-2 rounded-lg bg-slate-100" type="button" data-close-drawer data-i18n="cancel">إلغاء</button>
         </div>
       </form>
     </div>
@@ -349,32 +339,72 @@
   <div id="toast" class="fixed bottom-6 right-6 px-4 py-3 rounded-xl2 bg-emerald-600 text-white text-sm shadow-soft hidden">تم الحفظ</div>
 
   <script>
+    // ---------------- i18n ----------------
+    const i18n = {
+      ar:{brand:'حصيف',brandSub:'منصة تكامل تنموي مرتبطة برؤية 2030',myAccount:'حسابي',
+          generalSec:'القسم العام',home:'الرئيسية',regionsMap:'خريطة المناطق',impactStories:'قصص الأثر',
+          accounts:'الحسابات',modules:'المكوّنات',quickActions:'إجراءات سريعة',addProject:'+ مشروع',addEvent:'+ فعالية',
+          kpiActiveProjects:'المشاريع النشطة',kpiFunds:'قيمة التمويل (ر.س)',kpiUpcomingEvents:'الفعاليات القادمة',kpiVolOpps:'فرص التطوع',
+          allRegions:'كل المناطق',allSectors:'كل القطاعات',visionPrograms:'برامج الرؤية',
+          exportPDF:'تصدير PDF',exportXLSX:'تصدير Excel',reset:'إعادة الضبط',
+          projects:'المشاريع',demoNote:'نموذج عرض — للتجربة فقط',
+          thProject:'المشروع',thSector:'القطاع',thRegion:'المنطقة',thProgram:'البرنامج',thFund:'التمويل (ر.س)',thStatus:'الحالة',
+          newProject:'مشروع جديد',fldName:'اسم المشروع',fldSector:'القطاع',fldRegion:'المنطقة',fldProgram:'برنامج الرؤية (6/27/96)',fldFund:'التمويل المطلوب (ر.س)',fldStatus:'الحالة',fldDesc:'وصف موجز',
+          newEvent:'فعالية جديدة',evtTitle:'عنوان الفعالية',evtDate:'التاريخ',evtVenue:'الموقع/المرفق',evtDesc:'الوصف',
+          save:'حفظ',cancel:'إلغاء',mapNote:'الخريطة تجريبية وتعرض مؤشرات عدد المشاريع لكل منطقة.',toastSaved:'تم الحفظ'
+      },
+      en:{brand:'Hasif',brandSub:'A national development-integration platform aligned with Vision 2030',myAccount:'My Account',
+          generalSec:'General',home:'Home',regionsMap:'Regions Map',impactStories:'Impact Stories',
+          accounts:'Accounts',modules:'Modules',quickActions:'Quick Actions',addProject:'+ Project',addEvent:'+ Event',
+          kpiActiveProjects:'Active Projects',kpiFunds:'Funding (SAR)',kpiUpcomingEvents:'Upcoming Events',kpiVolOpps:'Volunteer Opportunities',
+          allRegions:'All Regions',allSectors:'All Sectors',visionPrograms:'Vision Programs',
+          exportPDF:'Export PDF',exportXLSX:'Export Excel',reset:'Reset',
+          projects:'Projects',demoNote:'Demo — for testing only',
+          thProject:'Project',thSector:'Sector',thRegion:'Region',thProgram:'Program',thFund:'Funding (SAR)',thStatus:'Status',
+          newProject:'New Project',fldName:'Project Name',fldSector:'Sector',fldRegion:'Region',fldProgram:'Vision Program (6/27/96)',fldFund:'Requested Funding (SAR)',fldStatus:'Status',fldDesc:'Brief Description',
+          newEvent:'New Event',evtTitle:'Event Title',evtDate:'Date',evtVenue:'Venue/Facility',evtDesc:'Description',
+          save:'Save',cancel:'Cancel',mapNote:'Experimental map showing project counts per region.',toastSaved:'Saved'
+      }
+    };
+
+    let currentLang = (localStorage.getItem('lang') || 'ar');
+    function applyI18n(lang){
+      currentLang = lang; localStorage.setItem('lang', lang);
+      document.documentElement.lang = lang;
+      const rtl = (lang==='ar'); document.documentElement.dir = rtl ? 'rtl' : 'ltr';
+      document.querySelectorAll('input, textarea, select').forEach(el=> rtl ? el.classList.add('rtl-input') : el.classList.remove('rtl-input'));
+      document.querySelectorAll('[data-i18n]').forEach(el=>{ const k=el.getAttribute('data-i18n'); if(i18n[lang][k]) el.textContent = i18n[lang][k]; });
+      document.getElementById('globalSearch').placeholder = rtl ? 'ابحث عن: مشروع، فعالية، وظيفة، منحة، مرفق...' : 'Search: project, event, job, grant, facility...';
+      document.querySelectorAll('thead tr').forEach(tr=>{ rtl ? tr.classList.replace('text-left','text-right') : tr.classList.replace('text-right','text-left'); });
+      lucide.createIcons();
+    }
+
     // ---------------- Mock Data ----------------
     const accounts = [
-      { key:'emirate',  name:'إمارة المنطقة', icon:'shield', color:'bg-primary/10' },
-      { key:'gov',      name:'جهة حكومية',    icon:'building-2' },
-      { key:'private',  name:'قطاع خاص',      icon:'briefcase' },
-      { key:'nonprofit',name:'قطاع غير ربحي', icon:'heart' },
-      { key:'uni',      name:'الجامعات',      icon:'graduation-cap' },
-      { key:'funder',   name:'جهات مانحة',    icon:'wallet' },
-      { key:'people',   name:'الأفراد',       icon:'users' },
-      { key:'speakers', name:'مدربون/متحدثون',icon:'mic' },
-      { key:'admin',    name:'حوكمة المنصة',  icon:'settings' },
+      { key:'emirate',  name_ar:'إمارة المنطقة', name_en:'Regional Emirate', icon:'shield' },
+      { key:'gov',      name_ar:'جهة حكومية',    name_en:'Government Entity', icon:'building-2' },
+      { key:'private',  name_ar:'قطاع خاص',      name_en:'Private Sector', icon:'briefcase' },
+      { key:'nonprofit',name_ar:'قطاع غير ربحي', name_en:'Nonprofit', icon:'heart' },
+      { key:'uni',      name_ar:'الجامعات',      name_en:'Universities', icon:'graduation-cap' },
+      { key:'funder',   name_ar:'جهات مانحة',    name_en:'Funders', icon:'wallet' },
+      { key:'people',   name_ar:'الأفراد',       name_en:'Individuals', icon:'users' },
+      { key:'speakers', name_ar:'مدربون/متحدثون',name_en:'Trainers/Speakers', icon:'mic' },
+      { key:'admin',    name_ar:'حوكمة المنصة',  name_en:'Platform Governance', icon:'settings' },
     ];
 
     const modules = [
-      { key:'projects', label:'مشاريع',   icon:'folder-kanban'},
-      { key:'challenges',label:'تحديات',  icon:'puzzle'},
-      { key:'events',   label:'فعاليات',   icon:'calendar'},
-      { key:'facilities',label:'مرافق',   icon:'building'},
-      { key:'jobs',     label:'وظائف',     icon:'badge-check'},
-      { key:'training', label:'تدريب',     icon:'book-open'},
-      { key:'volunteer',label:'تطوع',      icon:'hand-heart'},
-      { key:'advisory', label:'استشارات',  icon:'life-buoy'},
-      { key:'invest',   label:'استثمار',   icon:'trend-up'},
-      { key:'donate',   label:'تبرعات',    icon:'donut'}, // icon placeholder
-      { key:'funding',  label:'تمويل',     icon:'credit-card'},
-      { key:'reports',  label:'تقارير',    icon:'bar-chart-3'},
+      { key:'projects', label_ar:'مشاريع', label_en:'Projects', icon:'folder-kanban'},
+      { key:'challenges',label_ar:'تحديات', label_en:'Challenges', icon:'puzzle'},
+      { key:'events', label_ar:'فعاليات', label_en:'Events', icon:'calendar'},
+      { key:'facilities',label_ar:'مرافق', label_en:'Facilities', icon:'building'},
+      { key:'jobs', label_ar:'وظائف', label_en:'Jobs', icon:'badge-check'},
+      { key:'training', label_ar:'تدريب', label_en:'Training', icon:'book-open'},
+      { key:'volunteer', label_ar:'تطوع', label_en:'Volunteer', icon:'hand-heart'},
+      { key:'advisory', label_ar:'استشارات', label_en:'Advisory', icon:'life-buoy'},
+      { key:'invest', label_ar:'استثمار', label_en:'Investment', icon:'trend-up'},
+      { key:'donate', label_ar:'تبرعات', label_en:'Donations', icon:'donut'},
+      { key:'funding', label_ar:'تمويل', label_en:'Funding', icon:'credit-card'},
+      { key:'reports', label_ar:'تقارير', label_en:'Reports', icon:'bar-chart-3'},
     ];
 
     let projects = [
@@ -393,46 +423,38 @@
     // ---------------- Utilities ----------------
     const $ = (q, c=document) => c.querySelector(q);
     const $$ = (q, c=document) => Array.from(c.querySelectorAll(q));
-
-    function toast(msg='تم الحفظ'){
-      const el = $('#toast');
-      el.textContent = msg;
-      el.classList.remove('hidden');
-      setTimeout(()=>el.classList.add('hidden'), 1800);
-    }
+    function toast(msg){ const el = $('#toast'); el.textContent = msg; el.classList.remove('hidden'); setTimeout(()=>el.classList.add('hidden'), 1800); }
 
     function switchView(id){
       $$('.view').forEach(v => v.classList.add('hidden'));
       $('#'+id)?.classList.remove('hidden');
-      // active nav
       $$('#navMain .navlink').forEach(b=> b.classList.remove('bg-slate-100'));
       $(`#navMain .navlink[data-route="${id}"]`)?.classList.add('bg-slate-100');
       location.hash = id;
+      if(id==='map'){ setTimeout(()=>{ initMap(); mapInstance && mapInstance.invalidateSize(); }, 60); }
     }
 
     function renderAccounts(){
-      const wrap = $('#accountsGrid');
-      wrap.innerHTML = '';
+      const wrap = $('#accountsGrid'); wrap.innerHTML = '';
       accounts.forEach(a=>{
         const btn = document.createElement('button');
         btn.className = 'flex items-center gap-2 px-3 py-2 rounded-lg border hover:shadow-soft transition text-sm';
-        btn.innerHTML = `<i data-lucide="${a.icon}" class="w-4 h-4"></i><span>${a.name}</span>`;
-        btn.onclick = ()=> toast(`تم اختيار: ${a.name}`);
+        btn.innerHTML = `<i data-lucide="${a.icon}" class="w-4 h-4"></i><span>${currentLang==='ar'?a.name_ar:a.name_en}</span>`;
+        btn.onclick = ()=> toast((currentLang==='ar'?'تم اختيار: ':'Selected: ')+(currentLang==='ar'?a.name_ar:a.name_en));
         wrap.appendChild(btn);
       });
     }
 
     function renderModules(){
-      const wrap = $('#modulesGrid');
-      wrap.innerHTML = '';
+      const wrap = $('#modulesGrid'); wrap.innerHTML = '';
       modules.forEach(m=>{
         const btn = document.createElement('button');
         btn.className = 'flex items-center gap-2 px-3 py-2 rounded-lg border hover:bg-slate-50 transition text-sm';
-        btn.innerHTML = `<i data-lucide="${m.icon}" class="w-4 h-4"></i><span>${m.label}</span>`;
+        btn.innerHTML = `<i data-lucide="${m.icon}" class="w-4 h-4"></i><span>${currentLang==='ar'?m.label_ar:m.label_en}</span>`;
         btn.onclick = ()=>{
           if(m.key==='projects') switchView('dashboard');
-          else if(m.key==='events') switchView('map'); // كمثال تنقّل
-          else toast(`المكوّن: ${m.label} (نموذج)`);
+          else if(m.key==='events') switchView('map');
+          else toast((currentLang==='ar'?'المكوّن: ':'Module: ') + (currentLang==='ar'?m.label_ar:m.label_en));
         };
         wrap.appendChild(btn);
       });
@@ -441,9 +463,9 @@
     function renderKPIs(){
       $('#kpiProjects').textContent = projects.length;
       const funding = projects.reduce((s,p)=> s + (Number(p.fund)||0), 0);
-      $('#kpiFunding').textContent = funding.toLocaleString('ar-EG');
+      $('#kpiFunding').textContent = funding.toLocaleString(currentLang==='ar'?'ar-EG':'en-US');
       $('#kpiEvents').textContent = events.length;
-      $('#kpiVol').textContent = 7; // تجريبي
+      $('#kpiVol').textContent = 7;
     }
 
     function renderProjectsTable(){
@@ -452,19 +474,11 @@
       const sector = $('#filterSector').value;
       const program = $('#filterProgram').value;
       const q = $('#globalSearch').value.trim();
-
       let list = projects.slice();
-
       if(region) list = list.filter(p=> p.region===region);
       if(sector) list = list.filter(p=> p.sector===sector);
       if(program) list = list.filter(p=> p.program===program);
-      if(q) {
-        const terms = q.split(/\s+/);
-        list = list.filter(p => terms.every(t=>
-          (p.name+p.sector+p.region+p.program+p.status).includes(t)
-        ));
-      }
-
+      if(q){ const terms = q.split(/\s+/); list = list.filter(p => terms.every(t=>(p.name+p.sector+p.region+p.program+p.status).includes(t))); }
       tb.innerHTML = '';
       list.forEach(p=>{
         const tr = document.createElement('tr');
@@ -473,118 +487,114 @@
           <td class="px-3 py-3 text-slate-600">${p.sector}</td>
           <td class="px-3 py-3 text-slate-600">${p.region}</td>
           <td class="px-3 py-3 text-slate-600">${p.program}</td>
-          <td class="px-3 py-3 text-slate-600">${(Number(p.fund)||0).toLocaleString('ar-EG')}</td>
+          <td class="px-3 py-3 text-slate-600">${(Number(p.fund)||0).toLocaleString(currentLang==='ar'?'ar-EG':'en-US')}</td>
           <td class="px-3 py-3">
-            <span class="px-2 py-1 rounded-full text-xs ${p.status==='نشط' ? 'bg-emerald-100 text-emerald-700' : p.status==='قيد المراجعة' ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-700'}">
-              ${p.status}
-            </span>
+            <span class="px-2 py-1 rounded-full text-xs ${p.status==='نشط' ? 'bg-emerald-100 text-emerald-700' : p.status==='قيد المراجعة' ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-700'}">${p.status}</span>
           </td>
           <td class="px-3 py-3">
             <div class="flex items-center gap-2">
               <button class="p-2 rounded-lg hover:bg-slate-100" aria-label="Edit"><i data-lucide="pen" class="w-4 h-4"></i></button>
               <button class="p-2 rounded-lg hover:bg-slate-100" aria-label="Delete"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
             </div>
-          </td>
-        `;
+          </td>`;
         tb.appendChild(tr);
       });
       lucide.createIcons();
     }
 
     function renderStories(){
-      const wrap = $('#storiesWrap');
-      wrap.innerHTML = '';
+      const wrap = $('#storiesWrap'); wrap.innerHTML = '';
       const sample = [
-        { title:'تمكين 120 مستفيدًا عبر برنامج تدريب متكامل', kpi:'+86% توظيف', region:'حائل' },
-        { title:'تطوير مرافق جامعية لاحتضان مبادرات نوعية', kpi:'3 حاضنات', region:'الرياض' },
-        { title:'تحسين جودة الحياة عبر فعاليات مجتمعية', kpi:'5 فعاليات', region:'مكة' },
-        { title:'زيادة الشفافية في المنح والرعايات', kpi:'+1.2م ر.س', region:'الرياض' }
+        { title_ar:'تمكين 120 مستفيدًا عبر برنامج تدريب متكامل', kpi:'+86% توظيف', region_ar:'حائل', title_en:'Empowering 120 beneficiaries via integrated training', region_en:'Hail' },
+        { title_ar:'تطوير مرافق جامعية لاحتضان مبادرات نوعية', kpi:'3 حاضنات', region_ar:'الرياض', title_en:'Upgrading university facilities for flagship initiatives', region_en:'Riyadh' },
+        { title_ar:'تحسين جودة الحياة عبر فعاليات مجتمعية', kpi:'5 فعاليات', region_ar:'مكة', title_en:'Improving quality of life via community events', region_en:'Makkah' },
+        { title_ar:'زيادة الشفافية في المنح والرعايات', kpi:'+1.2م ر.س', region_ar:'الرياض', title_en:'Greater transparency in grants and sponsorships', region_en:'Riyadh' }
       ];
       sample.forEach(s=>{
         const card = document.createElement('div');
         card.className = 'p-4 rounded-2xl border bg-white';
-        card.innerHTML = `
-          <div class="text-sm text-slate-500">${s.region}</div>
-          <div class="font-semibold mt-1">${s.title}</div>
-          <div class="mt-3 text-primary text-sm">${s.kpi}</div>
-        `;
+        const title = currentLang==='ar'?s.title_ar:s.title_en;
+        const region = currentLang==='ar'?s.region_ar:s.region_en;
+        card.innerHTML = `<div class="text-sm text-slate-500">${region}</div><div class="font-semibold mt-1">${title}</div><div class="mt-3 text-primary text-sm">${s.kpi}</div>`;
         wrap.appendChild(card);
+      });
+    }
+
+    // -------------- Map (Leaflet) --------------
+    let mapInstance = null;
+    function initMap(){
+      if(mapInstance){ mapInstance.invalidateSize(); return; }
+      mapInstance = L.map('leafletMap').setView([23.8859, 45.0792], 5);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:18, attribution:'&copy; OpenStreetMap contributors'}).addTo(mapInstance);
+      const regions = [
+        { name_ar:'حائل', name_en:'Hail', lat:27.5219, lng:41.6907, count:12 },
+        { name_ar:'الرياض', name_en:'Riyadh', lat:24.7136, lng:46.6753, count:18 },
+        { name_ar:'مكة المكرمة', name_en:'Makkah', lat:21.3891, lng:39.8579, count:9 }
+      ];
+      regions.forEach(r=>{
+        const label = currentLang==='ar'? r.name_ar : r.name_en;
+        L.marker([r.lat, r.lng]).addTo(mapInstance).bindPopup(`<div class="text-sm"><b>${label}</b><br>${currentLang==='ar'?'مشاريع:':'Projects:'} ${r.count}</div>`);
       });
     }
 
     // -------------- Drawers & Forms --------------
     function openDrawer(id){ $('#'+id).classList.remove('hidden'); }
     function closeDrawer(id){ $('#'+id).classList.add('hidden'); }
-
-    // New Project
-    $('#btnNewProject').addEventListener('click', ()=> openDrawer('drawerProject'));
-    $('#btnNewEvent').addEventListener('click', ()=> openDrawer('drawerEvent'));
+    $('#btnNewProject').onclick = ()=> openDrawer('drawerProject');
+    $('#btnNewEvent').onclick = ()=> openDrawer('drawerEvent');
     $$('#drawerProject [data-close-drawer]').forEach(b=> b.onclick = ()=> closeDrawer('drawerProject'));
     $$('#drawerEvent [data-close-drawer]').forEach(b=> b.onclick = ()=> closeDrawer('drawerEvent'));
 
     $('#formProject').addEventListener('submit', (e)=>{
       e.preventDefault();
       const fd = new FormData(e.target);
-      const item = {
-        id: Math.max(0,...projects.map(p=>p.id))+1,
-        name: fd.get('name'),
-        sector: fd.get('sector'),
-        region: fd.get('region'),
-        program: fd.get('program'),
-        fund: Number(fd.get('fund')||0),
-        status: fd.get('status'),
-      };
+      const item = { id: Math.max(0,...projects.map(p=>p.id))+1, name: fd.get('name'), sector: fd.get('sector'), region: fd.get('region'), program: fd.get('program'), fund: Number(fd.get('fund')||0), status: fd.get('status') };
       projects.unshift(item);
-      closeDrawer('drawerProject');
-      renderKPIs(); renderProjectsTable();
-      e.target.reset();
-      toast('تم حفظ المشروع');
+      closeDrawer('drawerProject'); renderKPIs(); renderProjectsTable(); e.target.reset(); toast(i18n[currentLang].toastSaved);
     });
 
     $('#formEvent').addEventListener('submit', (e)=>{
       e.preventDefault();
       const fd = new FormData(e.target);
-      events.unshift({
-        id: Math.max(0,...events.map(x=>x.id))+1,
-        title: fd.get('title'),
-        date: fd.get('date'),
-        venue: fd.get('venue'),
-        desc: fd.get('desc')
-      });
-      closeDrawer('drawerEvent');
-      renderKPIs();
-      e.target.reset();
-      toast('تم حفظ الفعالية');
+      events.unshift({ id: Math.max(0,...events.map(x=>x.id))+1, title: fd.get('title'), date: fd.get('date'), venue: fd.get('venue'), desc: fd.get('desc') });
+      closeDrawer('drawerEvent'); renderKPIs(); e.target.reset(); toast(i18n[currentLang].toastSaved);
     });
 
     // Filters + search
     $('#filterRegion').onchange = renderProjectsTable;
     $('#filterSector').onchange = renderProjectsTable;
     $('#filterProgram').onchange = renderProjectsTable;
-    $('#btnResetFilters').onclick = ()=>{
-      $('#filterRegion').value=''; $('#filterSector').value=''; $('#filterProgram').value='';
-      $('#globalSearch').value=''; renderProjectsTable();
-    };
-    $('#globalSearch').addEventListener('input', ()=> renderProjectsTable());
+    $('#btnResetFilters').onclick = ()=>{ $('#filterRegion').value=''; $('#filterSector').value=''; $('#filterProgram').value=''; $('#globalSearch').value=''; renderProjectsTable(); };
+    $('#globalSearch').addEventListener('input', renderProjectsTable);
 
     // Nav
     $$('#navMain .navlink').forEach(b => b.onclick = ()=> switchView(b.dataset.route));
     window.addEventListener('hashchange', ()=> switchView(location.hash.replace('#','') || 'dashboard'));
 
-    // Keyboard shortcut Alt+1 → dashboard
-    window.addEventListener('keydown', (e)=>{
-      if(e.altKey && e.key==='1'){ switchView('dashboard'); }
-    });
+    // Keyboard shortcut Alt+1
+    window.addEventListener('keydown', (e)=>{ if(e.altKey && e.key==='1'){ switchView('dashboard'); } });
+
+    // Exports
+    document.getElementById('btnExportPDF').onclick = ()=>{
+      const { jsPDF } = window.jspdf; const doc = new jsPDF();
+      const title = (currentLang==='ar'?'قائمة المشاريع':'Projects List');
+      doc.setFontSize(14); doc.text(title, 14, 16);
+      const head = [[i18n[currentLang].thProject,i18n[currentLang].thSector,i18n[currentLang].thRegion,i18n[currentLang].thProgram,i18n[currentLang].thFund,i18n[currentLang].thStatus]];
+      const body = Array.from(document.querySelectorAll('#projectsTbody tr')).map(tr=> Array.from(tr.querySelectorAll('td')).map(td => td.innerText.trim()).slice(0,6));
+      doc.autoTable({ head, body, startY: 22, styles:{ fontSize: 10 } }); doc.save('projects.pdf');
+    };
+    document.getElementById('btnExportXLSX').onclick = ()=>{
+      const data = [['ID','Project','Sector','Region','Program','Funding','Status']]; projects.forEach(p=> data.push([p.id,p.name,p.sector,p.region,p.program,p.fund,p.status]));
+      const ws = XLSX.utils.aoa_to_sheet(data); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'Projects'); XLSX.writeFile(wb, 'projects.xlsx');
+    };
+
+    // Language toggle
+    document.getElementById('btnAR').onclick = ()=>{ applyI18n('ar'); renderAccounts(); renderModules(); renderKPIs(); renderProjectsTable(); renderStories(); if(location.hash.replace('#','')==='map'){ mapInstance && mapInstance.remove(); mapInstance=null; setTimeout(initMap,50); } };
+    document.getElementById('btnEN').onclick = ()=>{ applyI18n('en'); renderAccounts(); renderModules(); renderKPIs(); renderProjectsTable(); renderStories(); if(location.hash.replace('#','')==='map'){ mapInstance && mapInstance.remove(); mapInstance=null; setTimeout(initMap,50); } };
 
     // Init
-    renderAccounts();
-    renderModules();
-    renderKPIs();
-    renderProjectsTable();
-    renderStories();
-    switchView(location.hash.replace('#','') || 'dashboard');
-
-    lucide.createIcons();
+    function init(){ applyI18n(currentLang); renderAccounts(); renderModules(); renderKPIs(); renderProjectsTable(); renderStories(); switchView(location.hash.replace('#','') || 'dashboard'); lucide.createIcons(); }
+    init();
   </script>
 </body>
 </html>
