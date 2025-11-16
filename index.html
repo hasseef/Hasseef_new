@@ -1,689 +1,312 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>منصة حصيف – النموذج الأولي المتكامل</title>
+const FORM_CONFIG = {
 
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            primary: { DEFAULT: '#5AA044' },
-            accent:  { DEFAULT: '#F8BE43' },
-            ink:     { DEFAULT: '#0f172a' },
-            stone:   { DEFAULT: '#f5f5f4' },
-          },
-          boxShadow: {
-            soft: '0 18px 45px rgba(15,23,42,.08)',
-          },
-          borderRadius: {
-            soft: '1.25rem',
-          }
-        }
-      }
-    }
-  </script>
+  /* ╔══════════════════════════════╗
+     ║      1) حساب الجهة الحكومية    ║
+     ╚══════════════════════════════╝ */
 
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+  gov_project_sponsorship: {
+    title:'نموذج إدراج مبادرة/مشروع للرعاية أو التمويل',
+    fields:[
+      {name:'title', label:'عنوان المبادرة / المشروع', type:'text'},
+      {name:'gov_entity', label:'الجهة الحكومية المالكة', type:'text'},
+      {name:'vision_goal', label:'هدف/برنامج رؤية 2030 المرتبط', type:'select',
+        options:['تمكين المسؤولية الاجتماعية','تعزيز فاعلية الحكومة','جودة الحياة','تنمية وتنويع الاقتصاد'] },
+      {name:'description', label:'الوصف التفصيلي', type:'textarea'},
+      {name:'target_sectors', label:'القطاعات المستهدفة', type:'select',
+        options:['القطاع الخاص','القطاع غير الربحي','الجهات المانحة','الجامعات','الأفراد','الكل']},
+      {name:'expected_kpi', label:'مؤشرات الأثر المتوقعة', type:'textarea'},
+      {name:'budget_range', label:'نطاق قيمة الرعاية / التمويل', type:'text'},
+      {name:'attachments', label:'رفع ملف نطاق العمل (PDF)', type:'file'}
+    ]
+  },
 
-  <style>
-    body { font-family: 'Cairo', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
-    .glass { backdrop-filter: blur(10px); background: rgba(255,255,255,.78); }
-    .scroll-slim::-webkit-scrollbar{width:8px;height:8px}
-    .scroll-slim::-webkit-scrollbar-thumb{background:#e5e7eb;border-radius:8px}
-    .rtl-input { direction: rtl; }
-    .nav-tab { @apply px-3 py-1.5 rounded-full text-xs sm:text-sm font-semibold cursor-pointer transition; }
-    .nav-tab-active { @apply bg-ink text-white shadow-soft; }
-    .nav-tab-inactive { @apply bg-white text-slate-700 border border-slate-200 hover:bg-slate-50; }
-  </style>
+  gov_facilities: {
+    title:'نموذج إتاحة مرفق حكومي',
+    fields:[
+      {name:'facility_name', label:'اسم المرفق', type:'text'},
+      {name:'location', label:'الموقع', type:'text'},
+      {name:'capacity', label:'الطاقة الاستيعابية', type:'number'},
+      {name:'usage_type', label:'نوع الإتاحة', type:'select',
+        options:['مجاناً','بتكلفة رمزية','بتسعير تجاري']},
+      {name:'allowed_events', label:'نوع الفعاليات المسموح بها', type:'textarea'},
+      {name:'linked_goals', label:'ارتباط المرفق بأهداف الرؤية', type:'textarea'}
+    ]
+  },
 
-  <script src="https://unpkg.com/lucide@latest"></script>
-</head>
-<body class="bg-stone text-ink antialiased">
+  gov_events: {
+    title:'نموذج إنشاء فعالية / محفل',
+    fields:[
+      {name:'event_title', label:'عنوان الفعالية', type:'text'},
+      {name:'event_type', label:'نوع الفعالية', type:'select', options:['ورشة عمل','مؤتمر','ملتقى','محفل موسّع']},
+      {name:'event_date', label:'تاريخ التنفيذ', type:'date'},
+      {name:'facility', label:'المرفق المستخدم', type:'text'},
+      {name:'target', label:'الجمهور المستهدف', type:'textarea'},
+      {name:'speakers', label:'المتحدثون المقترحون', type:'textarea'},
+      {name:'trainers', label:'المدربون (إن وجد)', type:'textarea'},
+      {name:'vision_link', label:'ارتباط الفعالية بمستهدفات الرؤية', type:'textarea'},
+      {name:'need_emirate', label:'هل تحتاج موافقة الإمارة؟', type:'select', options:['نعم','لا']},
+      {name:'attachments', label:'رفع ملف تفاصيل الفعالية', type:'file'}
+    ]
+  },
 
-  <!-- Header -->
-  <header class="sticky top-0 z-40 shadow-soft bg-white/95 backdrop-blur">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-wrap items-center gap-3">
-      <div class="flex items-center gap-3">
-        <div class="w-11 h-11 rounded-2xl bg-primary text-white grid place-items-center text-lg font-black">ح</div>
-        <div>
-          <div class="text-base sm:text-lg font-extrabold text-ink">منصة حصيف الوطنية</div>
-          <div class="text-[11px] sm:text-xs text-slate-500">النموذج الأولي التشغيلي المتكامل – ٨ حسابات</div>
-        </div>
-      </div>
+  gov_challenges: {
+    title:'نموذج نشر تحدٍ تنموي',
+    fields:[
+      {name:'challenge_title', label:'عنوان التحدي', type:'text'},
+      {name:'problem_desc', label:'وصف الإشكالية', type:'textarea'},
+      {name:'target_sectors', label:'القطاعات المطلوب حلول منها',
+        type:'select', options:['القطاع الخاص','غير الربحي','الجامعات','الأفراد','الكل']},
+      {name:'deadline', label:'آخر موعد للحلول', type:'date'},
+      {name:'criteria', label:'معايير التقييم', type:'textarea'}
+    ]
+  },
 
-      <div class="flex-1"></div>
+  gov_sponsorship_packages: {
+    title:'إنشاء باقات رعاية',
+    fields:[
+      {name:'event_name', label:'اسم الفعالية/المشروع', type:'text'},
+      {name:'gold_features', label:'مزايا الباقة الذهبية', type:'textarea'},
+      {name:'silver_features', label:'مزايا الباقة الفضية', type:'textarea'},
+      {name:'bronze_features', label:'مزايا الباقة البرونزية', type:'textarea'},
+      {name:'pricing', label:'القيمة المالية المقترحة لكل باقة', type:'textarea'}
+    ]
+  },
 
-      <div class="flex items-center gap-2">
-        <a href="https://hasseef.github.io/hasseef_pro"
-           target="_blank"
-           class="inline-flex items-center gap-1.5 rounded-full border border-slate-200 px-3 py-1.5 text-xs sm:text-sm font-semibold text-slate-700 hover:bg-slate-50">
-          <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
-          النموذج السابق
-        </a>
-        <button id="aboutBtn"
-                class="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1.5 text-xs sm:text-sm font-semibold text-slate-700 hover:bg-slate-200">
-          <i data-lucide="info" class="w-3.5 h-3.5"></i>
-          حول المنصة
-        </button>
-        <button id="loginBtn"
-                class="inline-flex items-center gap-1.5 rounded-full bg-primary px-3 py-1.5 text-xs sm:text-sm font-semibold text-white hover:bg-emerald-700">
-          <i data-lucide="log-in" class="w-3.5 h-3.5"></i>
-          تسجيل الدخول
-        </button>
-      </div>
-    </div>
-  </header>
+  gov_sponsorship_followup: {
+    title:'متابعة حالة الرعاية/التمويل',
+    fields:[
+      {name:'sponsor_name', label:'اسم الجهة الراعية/المانحة', type:'text'},
+      {name:'project_name', label:'اسم المشروع', type:'text'},
+      {name:'status', label:'الحالة الحالية', type:'select',
+        options:['قيد الدراسة','قيد التفاوض','معتمد','مرفوض']},
+      {name:'next_steps', label:'الخطوات القادمة', type:'textarea'}
+    ]
+  },
 
-  <!-- Hero -->
-  <section class="bg-gradient-to-b from-white to-stone pb-8 pt-6">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid lg:grid-cols-[1.4fr,1fr] gap-6 items-stretch">
-      <div class="space-y-4">
-        <h1 class="text-2xl sm:text-3xl lg:text-4xl font-black leading-snug">
-          منصة وطنية رقمية
-          <span class="text-primary">توحّد المشاريع، الفعاليات، التمويل، التدريب، التوظيف، التطوع، والحلول التنموية بين جميع القطاعات</span>
-          في واجهة واحدة.
-        </h1>
-        <p class="text-sm sm:text-base text-slate-600">
-          هذا النموذج يتيح استعراض الحسابات الثمانية، والخدمات الرئيسة لكل حساب، مع نماذج إدخال حقيقية (محاكاة)
-          وتدفقات تشغيلية توضّح كيف ترتبط الحسابات معًا لخدمة مستهدفات رؤية 2030.
-        </p>
-        <div class="flex flex-wrap gap-2">
-          <span class="inline-flex items-center gap-1 rounded-full bg-white px-3 py-1 text-[11px] sm:text-xs shadow-soft border border-slate-100">
-            <i data-lucide="git-branch" class="w-3.5 h-3.5 text-primary"></i> تكامل بين الحسابات
-          </span>
-          <span class="inline-flex items-center gap-1 rounded-full bg-white px-3 py-1 text-[11px] sm:text-xs shadow-soft border border-slate-100">
-            <i data-lucide="target" class="w-3.5 h-3.5 text-accent"></i> ربط بمستهدفات رؤية 2030
-          </span>
-          <span class="inline-flex items-center gap-1 rounded-full bg-white px-3 py-1 text-[11px] sm:text-xs shadow-soft border border-slate-100">
-            <i data-lucide="layers" class="w-3.5 h-3.5 text-primary"></i> مرافق – فعاليات – تمويل – موارد بشرية
-          </span>
-        </div>
-      </div>
+  gov_coop_training: {
+    title:'طرح فرصة تدريب تعاوني',
+    fields:[
+      {name:'university', label:'الجامعة المستهدفة', type:'text'},
+      {name:'specialization', label:'التخصص المطلوب', type:'text'},
+      {name:'num_students', label:'عدد الطلاب', type:'number'},
+      {name:'duration', label:'المدة (أسابيع)', type:'number'},
+      {name:'tasks', label:'المهام', type:'textarea'},
+    ]
+  },
 
-      <!-- Accounts grid -->
-      <div class="glass rounded-soft shadow-soft border border-slate-100 p-4">
-        <div class="flex items-center justify-between mb-3">
-          <div>
-            <div class="text-xs font-semibold text-slate-500">الحسابات الرئيسية</div>
-            <div class="text-sm font-semibold text-ink">اختر نوع الحساب لاستعراض الخدمات</div>
-          </div>
-          <span class="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-3 py-1 text-[11px] font-semibold text-emerald-700">
-            <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-            نموذج تشغيلي تجريبي
-          </span>
-        </div>
-        <div class="grid grid-cols-2 gap-2" id="accountsGrid"></div>
-      </div>
-    </div>
-  </section>
+  gov_jobs: {
+    title:'طرح فرصة وظيفية',
+    fields:[
+      {name:'job_title', label:'المسمى الوظيفي', type:'text'},
+      {name:'job_level', label:'المستوى', type:'select',
+        options:['حديث تخرج','مبتدئ','متوسط','إدارة']},
+      {name:'department', label:'القسم', type:'text'},
+      {name:'requirements', label:'المهارات والمتطلبات', type:'textarea'}
+    ]
+  },
 
-  <!-- Tabs -->
-  <section class="bg-white border-y border-slate-200">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
-      <div id="tabs" class="flex flex-wrap gap-2 text-xs"></div>
-    </div>
-  </section>
+  gov_volunteering: {
+    title:'طرح فرصة تطوع تخصصي',
+    fields:[
+      {name:'title', label:'عنوان الفرصة', type:'text'},
+      {name:'domain', label:'التخصص', type:'text'},
+      {name:'hours', label:'عدد الساعات', type:'number'},
+      {name:'skills', label:'المهارات المطلوبة', type:'textarea'}
+    ]
+  },
 
-  <!-- Panels -->
-  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-8">
-    <div id="panels" class="space-y-8"></div>
-  </main>
+  gov_linked_projects: {
+    title:'المشاريع المرتبطة بمستهدفات الجهة',
+    fields:[
+      {name:'project_name', label:'اسم المشروع', type:'text'},
+      {name:'linked_by', label:'الجهة التي ربطت المشروع', type:'text'},
+      {name:'impact', label:'الأثر المتوقع', type:'textarea'},
+      {name:'notes', label:'ملاحظات الجهة الحكومية', type:'textarea'}
+    ]
+  },
 
-  <!-- KPI Strip -->
-  <section class="bg-ink text-white mt-6">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-      <div>
-        <div class="text-2xl font-extrabold">+280</div>
-        <div class="text-xs opacity-90">جهة حكومية</div>
-      </div>
-      <div>
-        <div class="text-2xl font-extrabold">+26K</div>
-        <div class="text-xs opacity-90">منشأة قطاع خاص</div>
-      </div>
-      <div>
-        <div class="text-2xl font-extrabold">+800</div>
-        <div class="text-xs opacity-90">جهة غير ربحية</div>
-      </div>
-      <div>
-        <div class="text-2xl font-extrabold">+10K</div>
-        <div class="text-xs opacity-90">مدرب ومتحدث وطني متوقع</div>
-      </div>
-    </div>
-  </section>
 
-  <!-- Modal -->
-  <div id="modal" class="fixed inset-0 bg-black/40 hidden items-center justify-center p-4">
-    <div class="glass max-w-3xl w-full rounded-soft shadow-soft border border-slate-200 relative max-h-[90vh] overflow-auto scroll-slim p-5">
-      <button id="modalClose"
-              class="absolute top-3 left-3 text-slate-500 hover:text-slate-700"
-              aria-label="إغلاق">
-        <i data-lucide="x" class="w-5 h-5"></i>
-      </button>
-      <div id="modalContent" class="space-y-4"></div>
-    </div>
-  </div>
+  /* ╔══════════════════════════╗
+     ║      2) حساب الجامعات      ║
+     ╚══════════════════════════╝ */
 
-  <script>
-    const ACCOUNTS = [
-      { key:'emirate',  name:'إمارة المنطقة',            icon:'shield',          color:'from-primary to-accent' },
-      { key:'gov',      name:'جهة حكومية',               icon:'building-2',      color:'from-primary to-emerald-500' },
-      { key:'private',  name:'قطاع خاص',                 icon:'briefcase',       color:'from-primary to-sky-500' },
-      { key:'nonprofit',name:'قطاع غير ربحي',            icon:'heart-handshake', color:'from-primary to-rose-400' },
-      { key:'uni',      name:'الجامعات',                 icon:'graduation-cap',  color:'from-primary to-indigo-500' },
-      { key:'funder',   name:'جهات مانحة/تمويلية',      icon:'wallet',          color:'from-primary to-amber-400' },
-      { key:'people',   name:'الأفراد',                  icon:'users',           color:'from-primary to-fuchsia-500' },
-      { key:'admin',    name:'حوكمة المنصة',             icon:'settings',        color:'from-slate-900 to-primary' },
-    ];
+  uni_coop_training: {
+    title:'نموذج تدريب تعاوني (جامعة)',
+    fields:[
+      {name:'entity', label:'الجهة المستضيفة', type:'text'},
+      {name:'major', label:'التخصص', type:'text'},
+      {name:'students', label:'عدد الطلاب', type:'number'},
+      {name:'duration', label:'المدة', type:'number'},
+      {name:'outcomes', label:'المخرجات التعليمية', type:'textarea'}
+    ]
+  },
 
-    const SERVICES = {
-      gov: [
-        {id:'gov_project_sponsorship', label:'إدراج مبادرة/مشروع للرعاية أو التمويل', desc:'إدراج مبادرة أو مشروع تنموي ليُعرض على الشركات والجهات المانحة كرعاية أو تمويل، مع ربط مباشر بمستهدفات الجهة ومؤشرات رؤية 2030.'},
-        {id:'gov_facilities',          label:'إدارة المرافق الحكومية',                desc:'تسجيل مرافق الجهة (قاعات، مراكز، مسارح) وإتاحتها مجاناً أو بمقابل للفعاليات المتوافقة مع مستهدفات الجهة.'},
-        {id:'gov_events',              label:'إدارة الفعاليات والمحافل',             desc:'إنشاء فعالية أو ملتقى أو ورشة عمل، وربطها بالموقع والمتحدثين والمدربين والمستهدفات وباقات الرعاية ومسار موافقة الإمارة.'},
-        {id:'gov_challenges',          label:'نشر تحديات وطلب حلول',                 desc:'نشر تحدٍ تنموي لتلقي حلول من القطاع الخاص، القطاع غير الربحي، الجامعات، والأفراد.'},
-        {id:'gov_solutions_pool',      label:'استعراض الحلول المقترحة مسبقاً',       desc:'تصفح الحلول التي اقترحها الآخرون دون طلب سابق وتصفيتها حسب البرامج والأهداف.'},
-        {id:'gov_coop_training',       label:'فرص تدريب تعاوني',                     desc:'طرح فرص تدريب تعاوني لطلاب الجامعات وربطها بتخصصاتهم وبمشاريع الجهة.'},
-        {id:'gov_jobs',                label:'فرص توظيف',                            desc:'إعلانات توظيف مرتبطة بالمشاريع والبرامج التنموية.'},
-        {id:'gov_volunteering',        label:'فرص تطوع تخصصي',                       desc:'نشر فرص تطوع تخصصية مرتبطة بالمشاريع والفعاليات.'},
-        {id:'gov_speakers',            label:'طلب متحدثين',                          desc:'اختيار متحدثين معتمدين لفعاليات الجهة من قاعدة بيانات المنصة.'},
-        {id:'gov_trainers',            label:'طلب مدربين',                           desc:'طلب مدربين معتمدين لتنفيذ برامج تدريبية أو ورش عمل.'},
-        {id:'gov_sponsorship_packages',label:'طرح باقات رعاية',                     desc:'تحويل فعالية أو مشروع إلى باقات رعاية (ذهبية/فضية/برونزية) بمزايا واضحة.'},
-        {id:'gov_reports',             label:'تقارير الأثر والحوكمة',               desc:'لوحات تقارير تربط مشاريع الجهة بمؤشرات رؤية 2030 ومؤشرات الأداء.'},
-      ],
-      uni: [
-        {id:'uni_coop_training',  label:'إدارة التدريب التعاوني للطلاب',    desc:'تنظيم التدريب التعاوني لطلاب الجامعة مع الجهات وربط التقييم بالمخرجات التعليمية.'},
-        {id:'uni_facilities',     label:'استثمار مرافق الجامعة',            desc:'تسجيل القاعات والمختبرات والمراكز وإتاحتها للشركاء أو المجتمع.'},
-        {id:'uni_programs',       label:'تسويق البرامج والأبحاث',           desc:'ربط البرامج والأبحاث والرسائل العلمية بالجهات ذات العلاقة في المشاريع.'},
-        {id:'uni_scientific_partner',label:'شريك علمي للمشاريع',           desc:'تعزيز المشاريع والمبادرات علمياً من خلال فرق عمل جامعية.'},
-        {id:'uni_consulting',     label:'استشارات أعضاء هيئة التدريس',     desc:'طلب وتقديم استشارات أكاديمية وبحثية للجهات المختلفة.'},
-        {id:'uni_events',         label:'فعاليات جامعية ومتحدثون ومدربون', desc:'إنشاء ندوات وملتقيات وورش عمل، وطلب متحدثين ومدربين ورعايات.'},
-      ],
-      people: [
-        {id:'people_trainer',     label:'ملف المدرب الوطني',              desc:'تفعيل ملف مدرب لإدارة البرامج التدريبية والحجوزات والتقييمات.'},
-        {id:'people_speaker',     label:'ملف المتحدث',                     desc:'إدارة ملف المتحدث في الملتقيات والمحافل والدعوات الرسمية.'},
-        {id:'people_expert',      label:'ملف الخبير/المستشار',            desc:'تقديم الخبرة كمستشار وربطها بالمشاريع التنموية.'},
-        {id:'people_retired',     label:'تفعيل المتقاعدين',               desc:'برامج للاستفادة من خبرات المتقاعدين في تطوير المجتمع.'},
-        {id:'people_opportunities',label:'فرص وظيفية/تطوعية/تدريبية',     desc:'استكشاف فرص تتوافق مع الملف المهني والتعليمي.'},
-        {id:'people_invest',      label:'فرص استثمار ورعاية شخصية',       desc:'الاستثمار أو رعاية مشاريع ومبادرات وطنية كفرد مقتدر.'},
-        {id:'people_events',      label:'حضور الفعاليات والمحافل',        desc:'متابعة الفعاليات والورش والتسجيل فيها.'},
-        {id:'people_solutions',   label:'اقتراح حلول تنموية',             desc:'طرح حلول تنموية وربطها بمستهدفات جهات ورؤية 2030.'},
-        {id:'people_incubation',  label:'طلب احتضان المشاريع',            desc:'تقديم المشاريع لحاضنات ومسرّعات الأعمال المتاحة.'},
-      ],
-      nonprofit: [
-        {id:'np_endowments',      label:'استثمار الأوقاف',                desc:'إدارة وتشغيل الأوقاف وتعظيم أثرها التنموي.'},
-        {id:'np_jobs_training',   label:'وظائف / تدريب / تدريب تعاوني',  desc:'نشر فرص توظيف وتدريب مرتبطة بالمشاريع.'},
-        {id:'np_funding',         label:'طلب تمويل أو رعاية للمبادرات',  desc:'طرح مشاريع ومبادرات ومحافل لطلب أي من التمويل أو الرعاية.'},
-        {id:'np_university_consulting',label:'استشارات علمية من الجامعات', desc:'طلب تعزيز علمي وبحثي من الجامعات للمبادرات.'},
-        {id:'np_facilities',      label:'استثمار مرافق الجهة',           desc:'تسجيل مرافق الجهة وإتاحتها للاستثمار أو التأجير.'},
-      ],
-      funder: [
-        {id:'funder_grants',      label:'استقبال طلبات منح وتمويل',      desc:'دورات منح، استقبال طلبات، وتصفيتها حسب المعايير.'},
-        {id:'funder_portfolio',   label:'محفظة التمويل والأثر',           desc:'متابعة المشروعات الممولة وحالة التنفيذ والأثر.'},
-        {id:'funder_facility_support',label:'دعم تجهيز المرافق',          desc:'تمويل تجهيز مرافق تنموية (مراكز، معامل، مسارح...).'},
-      ],
-      private: [
-        {id:'pr_sponsorships',    label:'رعاية المشاريع والفعاليات',      desc:'اكتشاف مشاريع وفعاليات جاهزة للرعاية بباقات واضحة.'},
-        {id:'pr_facilities',      label:'تأجير/إتاحة مرافق الشركة',       desc:'تسجيل المرافق وإتاحتها للاستثمار أو لخدمة المجتمع.'},
-        {id:'pr_invest_2030',     label:'فرص استثمار مرتبطة بالرؤية',    desc:'استثمار في مشاريع مرتبطة ببرامج رؤية 2030.'},
-        {id:'pr_jobs',            label:'وظائف ومسؤولية اجتماعية',       desc:'إعلانات الوظائف وبرامج التمكين المجتمعي.'},
-        {id:'pr_incubator',       label:'حاضنات ومسرّعات أعمال',         desc:'إدارة طلبات الاحتضان وتمويل المشاريع المحتضنة.'},
-        {id:'pr_events',          label:'محافل وورش عمل ودورات',         desc:'تنظيم فعاليات وطلب التصاريح والمتحدثين والرعاة.'},
-        {id:'pr_coop_training',   label:'فرص تدريب تعاوني',               desc:'طرح فرص تدريب تعاوني للطلاب بالتنسيق مع الجامعات.'},
-        {id:'pr_private_funding', label:'طلب تمويل مشاريع خاصة',         desc:'رفع مشاريع خاصة للجهات المانحة عبر المنصة.'},
-        {id:'pr_solutions',       label:'اقتراح حلول للجهات',            desc:'تقديم حلول لتحديات منشورة أو مقترحة من الجهات.'},
-      ],
-      emirate: [
-        {id:'em_approval',        label:'موافقة الفعاليات',               desc:'استقبال طلبات الفعاليات واعتمادها أو رفضها مع ملاحظات.'},
-        {id:'em_dashboard',       label:'لوحة التنمية المحلية',           desc:'عرض مؤشرات التنمية في المنطقة (مشاريع، تمويل، فعاليات...).'},
-        {id:'em_governance',      label:'حوكمة العمل بين القطاعات',      desc:'متابعة التكامل بين الجهات في المنطقة.'},
-      ],
-      admin: [
-        {id:'ad_accounts',        label:'إدارة الحسابات والصلاحيات',      desc:'إنشاء الحسابات وتحديد صلاحيات الخدمات لكل حساب.'},
-        {id:'ad_global_config',   label:'إعدادات المنصة العامة',          desc:'تهيئة الأهداف، البرامج، المؤشرات، المناطق، والقطاعات.'},
-        {id:'ad_monitoring',      label:'مراقبة الأداء والامتثال',        desc:'لوحات متابعة أداء المنصة ومستوى الامتثال والحوكمة.'},
-      ],
-    };
+  uni_facilities: {
+    title:'إتاحة مرفق جامعي',
+    fields:[
+      {name:'facility_name', label:'اسم المرفق', type:'text'},
+      {name:'capacity', label:'الطاقة الاستيعابية', type:'number'},
+      {name:'usage_mode', label:'نوع الإتاحة', type:'select',
+        options:['خدمة مجتمعية','تسويق تجاري','شراكة بحثية']},
+      {name:'conditions', label:'الشروط', type:'textarea'}
+    ]
+  },
 
-    // نماذج تفصيلية لخدمات أساسية
-    const FORM_CONFIG = {
-      // حكومي
-      gov_project_sponsorship: {
-        title:'نموذج إدراج مبادرة/مشروع للرعاية أو التمويل',
-        fields:[
-          {name:'title',       label:'عنوان المبادرة / المشروع',        type:'text'},
-          {name:'gov_entity',  label:'الجهة الحكومية المالكة',          type:'text'},
-          {name:'vision_goal', label:'هدف/برنامج من رؤية 2030',         type:'select', options:['تمكين المسؤولية الاجتماعية','تعزيز فاعلية الحكومة','تنمية وتنويع الاقتصاد','جودة الحياة']},
-          {name:'description', label:'الوصف التفصيلي',                   type:'textarea'},
-          {name:'target_sectors',label:'القطاعات المستهدفة',           type:'select', options:['القطاع الخاص','القطاع غير الربحي','الجهات المانحة','أفراد مقتدرون','جميع ما سبق']},
-          {name:'sponsorship_range',label:'نطاق قيمة الرعاية / التمويل', type:'text'},
-          {name:'expected_kpi',label:'مؤشرات الأثر المتوقعة (KPIs)',    type:'textarea'},
-        ]
-      },
-      gov_facilities: {
-        title:'نموذج إتاحة مرفق حكومي',
-        fields:[
-          {name:'facility_name', label:'اسم المرفق',               type:'text'},
-          {name:'location',      label:'الموقع',                   type:'text'},
-          {name:'capacity',      label:'الطاقة الاستيعابية',      type:'number'},
-          {name:'usage_type',    label:'نوع الإتاحة',              type:'select', options:['مجاناً','بتكلفة مخفّضة','بتسعير تجاري']},
-          {name:'eligible_events',label:'نوع الفعاليات المسموح بها', type:'textarea'},
-          {name:'linked_goals',  label:'الأهداف/البرامج المرتبطة', type:'textarea'},
-        ]
-      },
-      gov_events: {
-        title:'نموذج إنشاء فعالية / محفل',
-        fields:[
-          {name:'event_title',   label:'عنوان الفعالية',             type:'text'},
-          {name:'event_type',    label:'نوع الفعالية',               type:'select', options:['ملتقى','ورشة عمل','مؤتمر','محفل موسّع']},
-          {name:'event_date',    label:'التاريخ',                    type:'date'},
-          {name:'facility',      label:'المرفق المستهدف',           type:'text'},
-          {name:'target_audience',label:'الجمهور المستهدف',         type:'textarea'},
-          {name:'speakers',      label:'المتحدثون المقترحون',        type:'textarea'},
-          {name:'trainers',      label:'المدربون (إن وجد)',          type:'textarea'},
-          {name:'vision_link',   label:'ارتباط الفعالية بمستهدفات الرؤية', type:'textarea'},
-          {name:'need_emirate',  label:'تحتاج موافقة إمارة المنطقة؟', type:'select', options:['نعم','لا']},
-        ]
-      },
-      gov_challenges: {
-        title:'نموذج نشر تحدٍ تنموي',
-        fields:[
-          {name:'challenge_title', label:'عنوان التحدي',          type:'text'},
-          {name:'problem_desc',    label:'وصف التحدي',           type:'textarea'},
-          {name:'target_sectors',  label:'القطاعات المراد استهدافها بالحلول', type:'select', options:['القطاع الخاص','القطاع غير الربحي','الجامعات','الأفراد','جميع ما سبق']},
-          {name:'deadline',        label:'آخر موعد لاستقبال الحلول', type:'date'},
-          {name:'evaluation_criteria',label:'معايير التقييم',   type:'textarea'},
-        ]
-      },
-      gov_coop_training: {
-        title:'نموذج فرصة تدريب تعاوني (جهة حكومية)',
-        fields:[
-          {name:'partner_uni', label:'الجامعة/الكلية المستهدفة', type:'text'},
-          {name:'major',       label:'التخصص المطلوب',          type:'text'},
-          {name:'num_students',label:'عدد الطلاب',              type:'number'},
-          {name:'duration',    label:'مدة التدريب (أسابيع)',    type:'number'},
-          {name:'tasks',       label:'المهام الرئيسة للمتدرب',  type:'textarea'},
-        ]
-      },
-      gov_jobs: {
-        title:'نموذج فرصة توظيف (جهة حكومية)',
-        fields:[
-          {name:'job_title',  label:'المسمى الوظيفي',         type:'text'},
-          {name:'job_level',  label:'المستوى الوظيفي',        type:'select', options:['حديث تخرج','مبتدئ','متوسط','قيادي']},
-          {name:'department', label:'الإدارة/القطاع',         type:'text'},
-          {name:'job_desc',   label:'وصف المهام الرئيسة',     type:'textarea'},
-          {name:'requirements',label:'المؤهلات والمتطلبات',   type:'textarea'},
-        ]
-      },
-      gov_volunteering: {
-        title:'نموذج فرصة تطوع تخصصي',
-        fields:[
-          {name:'title',     label:'عنوان فرصة التطوع',       type:'text'},
-          {name:'domain',    label:'المجال/التخصص',           type:'text'},
-          {name:'hours',     label:'عدد الساعات المطلوبة',    type:'number'},
-          {name:'skills',    label:'المهارات المطلوبة',       type:'textarea'},
-          {name:'beneficiaries',label:'الفئة المستفيدة',      type:'textarea'},
-        ]
-      },
+  uni_targeted_events: {
+    title:'فعالية موجهة لتخصص محدد',
+    fields:[
+      {name:'event_title', label:'عنوان الفعالية', type:'text'},
+      {name:'specialty', label:'التخصص المستهدف', type:'text'},
+      {name:'audience', label:'نوع الحضور', type:'textarea'},
+      {name:'speakers', label:'المتحدثون', type:'textarea'}
+    ]
+  },
 
-      // جامعة
-      uni_coop_training: {
-        title:'إدارة تدريب تعاوني (جامعة)',
-        fields:[
-          {name:'partner_entity', label:'اسم الجهة المستضيفة',  type:'text'},
-          {name:'major',          label:'التخصص/البرنامج',      type:'text'},
-          {name:'num_students',   label:'عدد الطلاب',          type:'number'},
-          {name:'duration',       label:'مدة التدريب (أسابيع)', type:'number'},
-          {name:'learning_outcomes',label:'المخرجات التعليمية المتوقعة', type:'textarea'},
-        ]
-      },
-      uni_facilities: {
-        title:'نموذج إتاحة مرفق جامعي',
-        fields:[
-          {name:'facility_name', label:'اسم المرفق',          type:'text'},
-          {name:'capacity',      label:'الطاقة الاستيعابية', type:'number'},
-          {name:'usage_mode',    label:'نمط الاستخدام',      type:'select', options:['خدمة مجتمعية','استثمار','شراكة بحثية']},
-          {name:'conditions',    label:'اشتراطات الاستخدام', type:'textarea'},
-        ]
-      },
 
-      // أفراد
-      people_trainer: {
-        title:'تفعيل ملف مدرب',
-        fields:[
-          {name:'full_name',   label:'الاسم الكامل',         type:'text'},
-          {name:'specialty',   label:'التخصص التدريبي',      type:'text'},
-          {name:'experience',  label:'سنوات الخبرة',         type:'number'},
-          {name:'certificates',label:'أهم الشهادات والدورات', type:'textarea'},
-          {name:'preferred_topics',label:'الموضوعات المفضلة', type:'textarea'},
-        ]
-      },
-      people_speaker: {
-        title:'تفعيل ملف متحدث',
-        fields:[
-          {name:'full_name',   label:'الاسم الكامل',             type:'text'},
-          {name:'topics',      label:'الموضوعات الرئيسة',        type:'textarea'},
-          {name:'previous_events',label:'أبرز المشاركات السابقة', type:'textarea'},
-        ]
-      },
-      people_incubation: {
-        title:'طلب احتضان مشروع',
-        fields:[
-          {name:'project_name', label:'اسم المشروع',          type:'text'},
-          {name:'project_stage',label:'مرحلة المشروع',        type:'select', options:['فكرة','نموذج أولي','مشروع قائم يحتاج للتوسع']},
-          {name:'sector',       label:'المجال/القطاع المستهدف', type:'text'},
-          {name:'summary',      label:'ملخص الفكرة',          type:'textarea'},
-          {name:'needs',        label:'الاحتياجات (تمويل/احتضان/تسويق…)', type:'textarea'},
-        ]
-      },
+  /* ╔══════════════════════════╗
+     ║      3) حساب الأفراد       ║
+     ╚══════════════════════════╝ */
 
-      // قطاع خاص
-      pr_sponsorships: {
-        title:'اهتمام برعاية مشروع/فعالية',
-        fields:[
-          {name:'company',       label:'اسم الشركة',             type:'text'},
-          {name:'preferred_sectors',label:'المجالات المفضلة للرعاية', type:'textarea'},
-          {name:'annual_budget', label:'الميزانية التقديرية السنوية',  type:'text'},
-          {name:'csr_goals',     label:'أهداف المسؤولية الاجتماعية', type:'textarea'},
-        ]
-      },
+  people_trainer: {
+    title:'تفعيل ملف مدرب',
+    fields:[
+      {name:'full_name', label:'الاسم الكامل', type:'text'},
+      {name:'specialty', label:'التخصص', type:'text'},
+      {name:'experience', label:'سنوات الخبرة', type:'number'},
+      {name:'certifications', label:'الشهادات', type:'textarea'}
+    ]
+  },
 
-      // مانح
-      funder_grants: {
-        title:'إنشاء دورة منح (Call For Proposals)',
-        fields:[
-          {name:'program_name',  label:'اسم برنامج المنح',        type:'text'},
-          {name:'focus_areas',   label:'مجالات التركيز',          type:'textarea'},
-          {name:'total_budget',  label:'إجمالي ميزانية الدورة',   type:'text'},
-          {name:'deadline',      label:'آخر موعد للتقديم',        type:'date'},
-          {name:'criteria',      label:'معايير القبول والتقييم',   type:'textarea'},
-        ]
-      },
+  people_speaker: {
+    title:'تفعيل ملف متحدث',
+    fields:[
+      {name:'full_name', label:'الاسم', type:'text'},
+      {name:'topics', label:'الموضوعات', type:'textarea'},
+      {name:'previous_events', label:'الفعاليات السابقة', type:'textarea'}
+    ]
+  },
 
-      // إمارة
-      em_approval: {
-        title:'مراجعة طلب فعالية (إمارة المنطقة)',
-        fields:[
-          {name:'request_no', label:'رقم الطلب',          type:'text'},
-          {name:'entity',     label:'الجهة المنظمة',      type:'text'},
-          {name:'location',   label:'الموقع',             type:'text'},
-          {name:'date',       label:'التاريخ',           type:'date'},
-          {name:'notes',      label:'ملاحظات الإمارة',    type:'textarea'},
-          {name:'decision',   label:'القرار',            type:'select', options:['موافقة','موافقة مع ملاحظات','رفض']},
-        ]
-      },
-    };
+  people_incubation: {
+    title:'طلب احتضان مشروع',
+    fields:[
+      {name:'project_name', label:'اسم المشروع', type:'text'},
+      {name:'stage', label:'المرحلة', type:'select',
+        options:['فكرة','نموذج أولي','مشروع قائم']},
+      {name:'sector', label:'القطاع', type:'text'},
+      {name:'summary', label:'الملخص', type:'textarea'}
+    ]
+  },
 
-    const $ = s => document.querySelector(s);
-    const $$ = s => Array.from(document.querySelectorAll(s));
+  people_portfolio: {
+    title:'محفظتي التنموية',
+    fields:[
+      {name:'contributions', label:'مشاركاتي السابقة', type:'textarea'},
+      {name:'supported_projects', label:'المشاريع التي دعمتها', type:'textarea'},
+      {name:'roles', label:'الأدوار التي قمت بها', type:'textarea'}
+    ]
+  },
 
-    function renderAccountsGrid(){
-      const grid = $('#accountsGrid'); grid.innerHTML = '';
-      ACCOUNTS.forEach(acc => {
-        const btn = document.createElement('button');
-        btn.className = 'group relative overflow-hidden rounded-2xl border border-slate-100 bg-white px-3 py-3 text-right shadow-soft hover:-translate-y-0.5 transition transform';
-        btn.innerHTML = `
-          <div class="flex items-center gap-2">
-            <div class="w-9 h-9 rounded-xl bg-gradient-to-br ${acc.color} text-white grid place-items-center">
-              <i data-lucide="${acc.icon}" class="w-4.5 h-4.5"></i>
-            </div>
-            <div>
-              <div class="text-[13px] font-extrabold text-ink">${acc.name}</div>
-              <div class="text-[11px] text-slate-500">استكشاف الخدمات</div>
-            </div>
-          </div>`;
-        btn.onclick = () => activateTab(acc.key);
-        grid.appendChild(btn);
-      });
-    }
 
-    function renderTabs(){
-      const tabs = $('#tabs'); tabs.innerHTML = '';
-      ACCOUNTS.forEach((acc, idx) => {
-        const b = document.createElement('button');
-        b.dataset.key = acc.key;
-        b.className = 'nav-tab ' + (idx===0 ? 'nav-tab-active' : 'nav-tab-inactive');
-        b.innerHTML = `<span class="inline-flex items-center gap-1.5">
-          <i data-lucide="${acc.icon}" class="w-3.5 h-3.5"></i><span>${acc.name}</span></span>`;
-        b.onclick = () => activateTab(acc.key);
-        tabs.appendChild(b);
-      });
-    }
+  /* ╔═════════════════════════════╗
+     ║    4) حساب القطاع غير الربحي   ║
+     ╚═════════════════════════════╝ */
 
-    function renderPanels(){
-      const container = $('#panels'); container.innerHTML = '';
-      ACCOUNTS.forEach((acc, idx) => {
-        const section = document.createElement('section');
-        section.id = `panel-${acc.key}`;
-        section.className = idx===0 ? '' : 'hidden';
-        const services = SERVICES[acc.key] || [];
-        section.innerHTML = `
-          <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
-            <div>
-              <h2 class="text-xl sm:text-2xl font-black text-ink mb-1">${acc.name}</h2>
-              <p class="text-xs sm:text-sm text-slate-600">
-                الواجهة التشغيلية التجريبية للحساب، تعرض الخدمات الرئيسة والنماذج المرتبطة بها.
-              </p>
-            </div>
-            <button class="inline-flex items-center gap-1 rounded-full bg-white border border-slate-200 px-2.5 py-1 text-[11px] text-slate-700 hover:bg-slate-50"
-                    onclick="openAbout('${acc.key}')">
-              <i data-lucide="help-circle" class="w-3.5 h-3.5"></i>
-              كيف يعمل هذا الحساب؟
-            </button>
-          </div>
-          <div class="grid md:grid-cols-2 xl:grid-cols-3 gap-3">
-            ${services.map(s => `
-              <div class="rounded-2xl bg-white border border-slate-100 shadow-soft p-4 flex flex-col justify-between">
-                <div>
-                  <h3 class="text-sm sm:text-[15px] font-bold text-ink mb-1">${s.label}</h3>
-                  <p class="text-xs sm:text-[13px] text-slate-600 leading-relaxed">${s.desc}</p>
-                </div>
-                <div class="mt-3 flex flex-wrap gap-2">
-                  <button class="inline-flex flex-1 items-center justify-center gap-1 rounded-xl bg-primary px-3 py-1.5 text-[11px] sm:text-xs font-semibold text-white hover:bg-emerald-700"
-                          onclick="openForm('${acc.key}','${s.id}')">
-                    <i data-lucide="file-pen-line" class="w-3.5 h-3.5"></i>
-                    فتح النموذج
-                  </button>
-                  <button class="inline-flex items-center justify-center gap-1 rounded-xl bg-slate-100 px-3 py-1.5 text-[11px] sm:text-xs font-semibold text-slate-700 hover:bg-slate-200"
-                          onclick="openFlow('${acc.key}','${s.id}')">
-                    <i data-lucide="workflow" class="w-3.5 h-3.5"></i>
-                    تدفق الخدمة
-                  </button>
-                </div>
-              </div>`).join('')}
-          </div>`;
-        container.appendChild(section);
-      });
-    }
+  np_projects_management: {
+    title:'إدارة المبادرات التنموية',
+    fields:[
+      {name:'initiative_name', label:'اسم المبادرة', type:'text'},
+      {name:'vision_link', label:'ارتباطها بالرؤية', type:'textarea'},
+      {name:'needs', label:'الاحتياجات (تمويل/تطوع/شركاء)', type:'textarea'},
+      {name:'target', label:'الفئة المستهدفة', type:'textarea'}
+    ]
+  },
 
-    function activateTab(key){
-      $$('#tabs .nav-tab').forEach(btn => {
-        btn.classList.remove('nav-tab-active','bg-ink','text-white','shadow-soft');
-        btn.classList.add('nav-tab-inactive');
-        if(btn.dataset.key === key){
-          btn.classList.remove('nav-tab-inactive');
-          btn.classList.add('nav-tab-active');
-        }
-      });
-      $$('#panels > section').forEach(sec => sec.classList.add('hidden'));
-      const active = document.getElementById('panel-'+key);
-      if(active){
-        active.classList.remove('hidden');
-        window.scrollTo({top: document.querySelector('header').offsetHeight+10, behavior:'smooth'});
-      }
-      lucide.createIcons();
-    }
 
-    const modal = {
-      el:null, content:null,
-      init(){
-        this.el = $('#modal'); this.content = $('#modalContent');
-        $('#modalClose').onclick = () => this.hide();
-        this.el.addEventListener('click',e=>{ if(e.target===this.el) this.hide(); });
-      },
-      show(html){ this.content.innerHTML = html; this.el.classList.remove('hidden'); this.el.classList.add('flex'); lucide.createIcons(); },
-      hide(){ this.el.classList.add('hidden'); this.el.classList.remove('flex'); }
-    };
+  /* ╔══════════════════════════╗
+     ║   5) حساب القطاع الخاص     ║
+     ╚══════════════════════════╝ */
 
-    function openForm(accKey, serviceId){
-      const service = (SERVICES[accKey]||[]).find(s=>s.id===serviceId);
-      const cfg = FORM_CONFIG[serviceId] || {
-        title:`نموذج خدمة: ${service ? service.label : ''}`,
-        fields:[
-          {name:'title', label:'العنوان', type:'text'},
-          {name:'description', label:'الوصف', type:'textarea'}
-        ]
-      };
-      const fieldsHtml = cfg.fields.map(f=>{
-        if(f.type==='textarea') return `
-          <div class="space-y-1">
-            <label class="text-xs font-semibold text-slate-700">${f.label}</label>
-            <textarea class="rtl-input w-full rounded-xl border border-slate-200 px-3 py-2 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-primary/60 focus:border-primary" rows="3"></textarea>
-          </div>`;
-        if(f.type==='select') return `
-          <div class="space-y-1">
-            <label class="text-xs font-semibold text-slate-700">${f.label}</label>
-            <select class="rtl-input w-full rounded-xl border border-slate-200 px-3 py-2 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-primary/60 focus:border-primary">
-              <option value="">— اختر —</option>
-              ${(f.options||[]).map(o=>`<option>${o}</option>`).join('')}
-            </select>
-          </div>`;
-        return `
-          <div class="space-y-1">
-            <label class="text-xs font-semibold text-slate-700">${f.label}</label>
-            <input type="${f.type||'text'}"
-                   class="rtl-input w-full rounded-xl border border-slate-200 px-3 py-2 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-primary/60 focus:border-primary">
-          </div>`;
-      }).join('');
+  pr_csr_dashboard: {
+    title:'بيانات لوحة المسؤولية الاجتماعية',
+    fields:[
+      {name:'total_projects', label:'عدد المشاريع المدعومة', type:'number'},
+      {name:'total_budget', label:'إجمالي مبالغ الرعاية', type:'text'},
+      {name:'beneficiaries', label:'عدد المستفيدين', type:'number'},
+      {name:'notes', label:'ملاحظات إضافية', type:'textarea'}
+    ]
+  },
 
-      modal.show(`
-        <div class="space-y-3">
-          <h2 class="text-lg sm:text-xl font-black text-ink">${cfg.title}</h2>
-          <p class="text-xs sm:text-[13px] text-slate-600">
-            هذا نموذج حقيقي قابل للإدخال والمحاكاة، الهدف منه توضيح تجربة المستخدم.
-          </p>
-          <form class="space-y-3" onsubmit="event.preventDefault(); alert('محاكاة: تم ملء النموذج بنجاح.');">
-            ${fieldsHtml}
-            <div class="flex flex-wrap items-center justify-between gap-2 pt-1">
-              <button type="submit"
-                      class="inline-flex items-center gap-1 rounded-xl bg-primary px-4 py-1.5 text-xs sm:text-sm font-semibold text-white hover:bg-emerald-700">
-                <i data-lucide="check-circle-2" class="w-4 h-4"></i>
-                حفظ (محاكاة)
-              </button>
-              <span class="text-[11px] text-slate-500">
-                سيتم ربط هذه الخدمة بالحسابات ذات العلاقة (تمويل، رعاية، تدريب، توظيف، تطوع...) في النسخة التشغيلية الكاملة.
-              </span>
-            </div>
-          </form>
-        </div>
-      `);
-    }
 
-    function openFlow(accKey, serviceId){
-      const service = (SERVICES[accKey]||[]).find(s=>s.id===serviceId);
-      let related = 'حسابات متعددة داخل المنصة حسب نوع الخدمة.';
-      if(accKey==='gov' && serviceId==='gov_project_sponsorship'){
-        related = 'القطاع الخاص، القطاع غير الربحي، الجهات المانحة، الجامعات، إمارة المنطقة (في حال مشروع ذو فعالية).';
-      } else if(accKey==='uni'){
-        related = 'الجهات الحكومية، القطاع الخاص، القطاع غير الربحي، وحساب الأفراد (الطلاب والمتدربون).';
-      } else if(accKey==='people' && serviceId==='people_trainer'){
-        related = 'الجهات الحكومية، الجامعات، القطاع الخاص، والقطاع غير الربحي التي تطلب مدربين عبر المنصة.';
-      }
+  /* ╔══════════════════════════╗
+     ║   6) حساب الجهات المانحة    ║
+     ╚══════════════════════════╝ */
 
-      modal.show(`
-        <div class="space-y-3">
-          <h2 class="text-lg sm:text-xl font-black text-ink">تدفق خدمة: ${service ? service.label : ''}</h2>
-          <ol class="list-decimal pr-5 space-y-1.5 text-xs sm:text-sm text-slate-700">
-            <li>إدخال جميع بيانات الخدمة وربطها بالأهداف والبرامج ومؤشرات رؤية 2030 ذات العلاقة.</li>
-            <li>تحديد الحسابات المستهدفة (جهات حكومية، قطاع خاص، غير ربحي، جامعات، أفراد، جهات مانحة) ونمط العلاقة (تمويل، رعاية، تدريب، توظيف، تطوع، استشارات...).</li>
-            <li>رفع المرفقات (نطاق العمل، الجدول الزمني، المرافق، الميزانيات، المتحدثين والمدربين...).</li>
-            <li>مرور الخدمة بمسارات الاعتماد الداخلية (حساب الجهة) والخارجية عند الحاجة (مثل موافقة إمارة المنطقة للفعاليات).</li>
-            <li>نشر الخدمة أو المشروع أو الفرصة في المنصة، وإتاحة التنافس أو المشاركة، ثم متابعة التنفيذ والأثر عبر لوحات التقارير.</li>
-          </ol>
-          <p class="text-[11px] sm:text-xs text-slate-500">
-            ترتبط هذه الخدمة تشغيليًا مع: ${related}
-          </p>
-        </div>
-      `);
-    }
+  funder_policies: {
+    title:'سياسات ومعايير الجهة المانحة',
+    fields:[
+      {name:'focus_areas', label:'مجالات تركيز المنح', type:'textarea'},
+      {name:'regions', label:'المناطق المستهدفة', type:'textarea'},
+      {name:'eligible_entities', label:'الجهات المؤهلة للمنح', type:'textarea'}
+    ]
+  },
 
-    function openAbout(key){
-      const acc = ACCOUNTS.find(a=>a.key===key);
-      const txt = {
-        emirate:'حساب إمارة المنطقة يركّز على اعتماد الفعاليات المحتاجة لموافقة الإمارة، ومتابعة التنمية المحلية، وحوكمة العمل بين القطاعات في المنطقة.',
-        gov:'حساب الجهة الحكومية يمكّن الوزارة أو الهيئة من طرح مشاريع ومبادرات وتحديات، وإدارة المرافق والفعاليات، وتقديم فرص توظيف وتدريب وتطوع، وطلب حلول من بقية القطاعات.',
-        private:'حساب القطاع الخاص يمكّن الشركات من الرعاية والاستثمار والتوظيف والتدريب التعاوني واستثمار المرافق واحتضان المشاريع واقتراح الحلول.',
-        nonprofit:'حساب القطاع غير الربحي يمكّن الجمعيات والمؤسسات من إدارة الأوقاف، والوظائف، والتدريب، وطلب التمويل والرعاية، واستثمار المرافق وطلب الاستشارات العلمية.',
-        uni:'حساب الجامعات يمكّن الجامعة من إدارة التدريب التعاوني، واستثمار المرافق، وتسويق البرامج والأبحاث، وتقديم الاستشارات والفعاليات العلمية.',
-        funder:'حساب الجهات المانحة والتمويلية يستقبل طلبات المنح والتمويل، ويُدير محفظة التمويل، ويقيس الأثر التنموي للمشاريع الممولة.',
-        people:'حساب الأفراد يمكّن المدربين والمتحدثين والخبراء والمتقاعدين وباحثي العمل والفرص التطوعية والتدريبية والاستثمارية من إدارة ملفاتهم وفرصهم واقتراح الحلول وطلب الاحتضان.',
-        admin:'حساب حوكمة المنصة يدير الحسابات والصلاحيات والإعدادات العامة والحوكمة ومراقبة الأداء.'
-      }[key] || '';
-      modal.show(`
-        <div class="space-y-2">
-          <h2 class="text-lg sm:text-xl font-black text-ink">كيف يعمل حساب: ${acc ? acc.name : ''}؟</h2>
-          <p class="text-xs sm:text-[13px] text-slate-600">${txt}</p>
-        </div>
-      `);
-    }
+  funder_grants: {
+    title:'إنشاء دورة منح',
+    fields:[
+      {name:'program_name', label:'اسم برنامج المنح', type:'text'},
+      {name:'focus_areas', label:'مجالات التركيز', type:'textarea'},
+      {name:'budget', label:'الميزانية', type:'text'},
+      {name:'deadline', label:'آخر موعد للتقديم', type:'date'}
+    ]
+  },
 
-    // About platform + login
-    document.getElementById('aboutBtn').onclick = () => {
-      modal.show(`
-        <div class="space-y-3">
-          <h2 class="text-lg sm:text-xl font-black text-ink">حول النموذج الأولي لمنصة حصيف</h2>
-          <p class="text-xs sm:text-[13px] text-slate-600">
-            هذا النموذج يقدم تصورًا تشغيليًا متكاملًا لمنصة حصيف، يشمل ثمانية حسابات رئيسية،
-            وخدمات أساسية لكل حساب، مع نماذج إدخال حقيقية (محاكاة) وتدفقات تشغيلية توضح
-            الربط بين الحسابات وفق مستهدفات رؤية 2030.
-          </p>
-        </div>
-      `);
-    };
 
-    document.getElementById('loginBtn').onclick = () => {
-      modal.show(`
-        <div class="space-y-3">
-          <h2 class="text-lg sm:text-xl font-black text-ink mb-1">تسجيل الدخول (محاكاة)</h2>
-          <p class="text-xs sm:text-[13px] text-slate-600">
-            واجهة تجريبية لتوضيح تجربة الدخول إلى الحسابات المختلفة في المنصة.
-          </p>
-          <form class="space-y-2" onsubmit="event.preventDefault(); alert('محاكاة: في النسخة الفعلية سيتم التحقق من البيانات والصلاحيات.');">
-            <div class="space-y-1">
-              <label class="text-xs font-semibold text-slate-700">البريد الإلكتروني</label>
-              <input type="email" class="rtl-input w-full rounded-xl border border-slate-200 px-3 py-2 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-primary/60 focus:border-primary" />
-            </div>
-            <div class="space-y-1">
-              <label class="text-xs font-semibold text-slate-700">كلمة المرور</label>
-              <input type="password" class="rtl-input w-full rounded-xl border border-slate-200 px-3 py-2 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-primary/60 focus:border-primary" />
-            </div>
-            <div class="space-y-1">
-              <label class="text-xs font-semibold text-slate-700">نوع الحساب</label>
-              <select class="rtl-input w-full rounded-xl border border-slate-200 px-3 py-2 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-primary/60 focus:border-primary">
-                ${ACCOUNTS.map(a=>`<option value="${a.key}">${a.name}</option>`).join('')}
-              </select>
-            </div>
-            <button type="submit"
-                    class="mt-2 inline-flex items-center gap-1 rounded-xl bg-primary px-4 py-1.5 text-xs sm:text-sm font-semibold text-white hover:bg-emerald-700">
-              <i data-lucide="log-in" class="w-4 h-4"></i>
-              دخول (محاكاة)
-            </button>
-          </form>
-        </div>
-      `);
-    };
+  /* ╔══════════════════════════╗
+     ║         7) حساب الإمارة      ║
+     ╚══════════════════════════╝ */
 
-    // Init
-    modal.init();
-    renderAccountsGrid();
-    renderTabs();
-    renderPanels();
-    lucide.createIcons();
-  </script>
-</body>
-</html>
+  em_projects_overview: {
+    title:'عرض مشاريع المنطقة',
+    fields:[
+      {name:'project_name', label:'اسم المشروع', type:'text'},
+      {name:'sector', label:'القطاع', type:'text'},
+      {name:'owner', label:'الجهة المالكة', type:'text'},
+      {name:'impact', label:'الأثر التنموي', type:'textarea'}
+    ]
+  },
+
+  em_top_contributors: {
+    title:'أعلى الجهات المساهمة',
+    fields:[
+      {name:'entity_name', label:'اسم الجهة', type:'text'},
+      {name:'contribution_value', label:'قيمة المساهمة', type:'text'},
+      {name:'projects_supported', label:'عدد المشاريع المدعومة', type:'number'}
+    ]
+  },
+
+
+  /* ╔══════════════════════════╗
+     ║   8) حساب حوكمة المنصة      ║
+     ╚══════════════════════════╝ */
+
+  ad_vision_engine: {
+    title:'تحديث بيانات برامج وأهداف ومؤشرات الرؤية',
+    fields:[
+      {name:'program', label:'اسم برنامج الرؤية', type:'text'},
+      {name:'goal', label:'الهدف الاستراتيجي', type:'text'},
+      {name:'indicator', label:'المؤشر التفصيلي', type:'textarea'}
+    ]
+  },
+
+  ad_audit_trail: {
+    title:'سجل التغييرات',
+    fields:[
+      {name:'action', label:'نوع التغيير', type:'select',
+        options:['إنشاء','تعديل','حذف','اعتماد']},
+      {name:'entity', label:'العنصر المتأثر', type:'text'},
+      {name:'user', label:'المستخدم', type:'text'},
+      {name:'notes', label:'ملاحظات', type:'textarea'}
+    ]
+  }
+
+};
