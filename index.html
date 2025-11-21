@@ -4,8 +4,116 @@
   <meta charset="UTF-8" />
   <title>منصة حصيف | HASIF Platform</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="منصة حصيف الوطنية للتكامل التنموي، لربط الأفراد والجهات بالحلول والمشاريع والفعاليات وفق رؤية المملكة 2030." />
+  <meta name="description" content="منصة حصيف الوطنية للتكامل التن... والجهات بالحلول والمشاريع والفعاليات وفق رؤية المملكة 2030." />
   <link rel="stylesheet" href="assets/css/style.css" />
+  <!-- تنسيقات بسيطة لنافذة تفاصيل المكوّنات -->
+  <style>
+    .module-modal {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 40;
+    }
+    .module-modal.hidden {
+      display: none;
+    }
+    .module-modal-backdrop {
+      position: absolute;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.6);
+    }
+    .module-modal-content {
+      position: relative;
+      background: #ffffff;
+      border-radius: 1rem;
+      max-width: 640px;
+      width: 90%;
+      padding: 1.5rem 1.75rem;
+      box-shadow: 0 10px 40px rgba(15, 23, 42, 0.3);
+      direction: rtl;
+      text-align: right;
+    }
+    .module-modal-close {
+      position: absolute;
+      top: 0.5rem;
+      left: 0.75rem;
+      border: none;
+      background: transparent;
+      font-size: 1.4rem;
+      cursor: pointer;
+      line-height: 1;
+      color: #64748b;
+    }
+    .module-modal-accounts-title {
+      margin-top: 1rem;
+      font-size: 0.85rem;
+      color: #475569;
+    }
+    .module-modal-accounts-list {
+      margin: 0.35rem 0 0;
+      padding: 0;
+      list-style: none;
+      font-size: 0.8rem;
+      color: #0f172a;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+    }
+    .module-modal-accounts-list li {
+      background: #f1f5f9;
+      border-radius: 999px;
+      padding: 0.2rem 0.7rem;
+      white-space: nowrap;
+    }
+    .module-modal h3 {
+      margin-top: 0;
+      margin-bottom: 0.4rem;
+      font-size: 1rem;
+    }
+    .module-modal p {
+      margin: 0;
+      font-size: 0.85rem;
+      color: #475569;
+    }
+
+    /* قسم الفئات المستفيدة (أنا...) */
+    .audience-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.75rem;
+      margin-top: 0.75rem;
+    }
+    @media (max-width: 900px) {
+      .audience-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+    @media (max-width: 600px) {
+      .audience-grid {
+        grid-template-columns: repeat(1, minmax(0, 1fr));
+      }
+    }
+    .audience-card h3 {
+      font-size: 0.95rem;
+      margin-bottom: 0.25rem;
+      color: #0f172a;
+    }
+    .audience-card p {
+      font-size: 0.8rem;
+      color: #475569;
+      margin: 0 0 0.4rem;
+    }
+    .audience-link {
+      font-size: 0.8rem;
+      text-decoration: none;
+      color: #1d4ed8;
+    }
+    .audience-link:hover {
+      text-decoration: underline;
+    }
+  </style>
 </head>
 <body class="lang-ar">
   <header class="site-header">
@@ -77,6 +185,68 @@
             <li class="t-ar">تكامل مع الجهات الحكومية وإمارات المناطق</li>
             <li class="t-en">Integration with government entities & emirates</li>
           </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- AUDIENCES -->
+    <section id="audiences" class="section section-alt">
+      <div class="container section-inner">
+        <div class="section-header">
+          <h2 class="t-ar">لمن صُممت منصة حصيف؟</h2>
+          <h2 class="t-en">Who is HASIF for?</h2>
+          <p class="t-ar">
+            تتيح حصيف لكل فئة من الفئات المستفيدة مسارًا واضحًا للتفاعل مع المنصة؛ من الإمارة والجهات الحكومية
+            وحتى الأفراد والمانحين والجامعات والقطاع الخاص.
+          </p>
+          <p class="t-en">
+            HASIF provides a clear interaction path for each audience segment: emirates, government entities,
+            universities, private sector, nonprofits, donors and individuals.
+          </p>
+        </div>
+        <div class="audience-grid">
+          <div class="card audience-card">
+            <h3 class="t-ar">أنا إمارة / هيئة تطوير</h3>
+            <p class="t-ar">
+              أحتاج رؤية شاملة للمنطقة، اعتماد الفعاليات والمتحدثين، متابعة المشاريع التنموية، وربط كل ذلك بالرؤية 2030.
+            </p>
+            <a href="accounts/emirate.html" class="audience-link t-ar">استعراض نموذج حساب الإمارة</a>
+          </div>
+          <div class="card audience-card">
+            <h3 class="t-ar">أنا جهة حكومية</h3>
+            <p class="t-ar">
+              أحتاج استقبال الحلول، إطلاق المشاريع والمبادرات، طلب التمويل، وقياس الأثر وفق مؤشرات واضحة مرتبطة بالرؤية.
+            </p>
+            <a href="#accounts" class="audience-link t-ar">التعرّف على حساب الجهة الحكومية</a>
+          </div>
+          <div class="card audience-card">
+            <h3 class="t-ar">أنا جامعة</h3>
+            <p class="t-ar">
+              أحتاج تعزيزًا علميًا للمشاريع، فرص احتضان، تفعيل المرافق الجامعية، وبرامج تدريب تعاوني مرتبطة بسوق العمل.
+            </p>
+            <a href="#accounts" class="audience-link t-ar">التعرّف على حساب الجامعات</a>
+          </div>
+          <div class="card audience-card">
+            <h3 class="t-ar">أنا قطاع خاص / شركة</h3>
+            <p class="t-ar">
+              أحتاج فرص مسؤولية اجتماعية واستثمار في مشاريع ذات أثر تنموي واضح يمكن قياسه ومتابعته وتقاريره.
+            </p>
+            <a href="#accounts" class="audience-link t-ar">التعرّف على حساب القطاع الخاص</a>
+          </div>
+          <div class="card audience-card">
+            <h3 class="t-ar">أنا مانح / مستثمر</h3>
+            <p class="t-ar">
+              أبحث عن مشاريع جاهزة للتمويل، حوكمة واضحة، تقارير أثر، وربط مباشر بالرؤية 2030 والجهات الحكومية.
+            </p>
+            <a href="#accounts" class="audience-link t-ar">التعرّف على حساب المانحين</a>
+          </div>
+          <div class="card audience-card">
+            <h3 class="t-ar">أنا فرد</h3>
+            <p class="t-ar">
+              أريد تقديم مبادرات وحلول، التطوع، التدريب، فرص العمل، والاستثمار في الفرص التنموية بما يتناسب مع قدراتي.
+            </p>
+            <a href="accounts/individual.html" class="audience-link t-ar">استعراض نموذج حساب الأفراد</a>
+          </div>
         </div>
       </div>
     </section>
@@ -199,51 +369,33 @@
       </div>
     </section>
 
-    <!-- CORE MODULES -->
+    <!-- CORE MODULES (Dynamic from core-modules.js) -->
     <section id="modules" class="section">
       <div class="container section-inner">
         <div class="section-header">
           <h2 class="t-ar">المكوّنات الأساسية (Core Modules)</h2>
           <h2 class="t-en">Core Operational Modules</h2>
-          <p class="t-ar">طبقة موحدة من ١٩ مكوّن تشغيلي، تُستخدم في جميع الحسابات مع اختلاف الصلاحيات.</p>
-          <p class="t-en">A unified layer of 19 operational modules used across all accounts with different permissions.</p>
+          <p class="t-ar">
+            طبقة موحدة من المكوّنات التشغيلية (Core Modules) تُستخدم في جميع الحسابات مع اختلاف الصلاحيات،
+            ويتم تعريفها في ملف النواة التقني واستهلاكها هنا للعرض.
+          </p>
+          <p class="t-en">
+            A unified layer of operational core modules shared across all accounts with different permissions,
+            defined in the technical core file and rendered here.
+          </p>
         </div>
-        <div class="modules-grid">
-          <div class="card module-card">
-            <h3 class="t-ar">الحلول</h3>
-            <h3 class="t-en">Solutions</h3>
-            <p class="t-ar">إنشاء، تقييم، تعزيز علمي، وتحويل إلى مشاريع قابلة للتنفيذ.</p>
-            <p class="t-en">Create, evaluate, review and convert solutions into executable projects.</p>
-          </div>
-          <div class="card module-card">
-            <h3 class="t-ar">المشاريع</h3>
-            <h3 class="t-en">Projects</h3>
-            <p class="t-ar">إدارة دورة حياة المشروع من الفكرة وحتى تقرير الأثر.</p>
-            <p class="t-en">Manage project lifecycle from idea to impact report.</p>
-          </div>
-          <div class="card module-card">
-            <h3 class="t-ar">الفعاليات والمرافق</h3>
-            <h3 class="t-en">Events & Facilities</h3>
-            <p class="t-ar">تنظيم الفعاليات، اختيار المرافق، إدارة المتحدثين، والتقارير الختامية.</p>
-            <p class="t-en">Organize events, select facilities, manage speakers and final reports.</p>
-          </div>
-          <div class="card module-card">
-            <h3 class="t-ar">التمويل والرعايات</h3>
-            <h3 class="t-en">Funding & Sponsorship</h3>
-            <p class="t-ar">طلبات التمويل، المنح، الرعايات، والمحفظة المالية.</p>
-            <p class="t-en">Funding requests, grants, sponsorships and wallet management.</p>
-          </div>
-          <div class="card module-card">
-            <h3 class="t-ar">التطوع والتدريب</h3>
-            <h3 class="t-en">Volunteering & Training</h3>
-            <p class="t-ar">فرص تطوع، تدريب تعاوني، وظائف، وتطوير رأس المال البشري.</p>
-            <p class="t-en">Volunteer opportunities, co-op training, jobs and human capital development.</p>
-          </div>
-          <div class="card module-card">
-            <h3 class="t-ar">الشراكات والاستثمار</h3>
-            <h3 class="t-en">Partnerships & Investment</h3>
-            <p class="t-ar">بناء الشراكات، الفرص الاستثمارية، وتتبع العوائد.</p>
-            <p class="t-en">Build partnerships, publish investment opportunities and track returns.</p>
+
+        <!-- سيتم تعبئته ديناميكيًا حسب HASIF_CORE_MODULES -->
+        <div id="modules-grid" class="modules-grid"></div>
+
+        <!-- نافذة تفاصيل المكوّن -->
+        <div id="module-modal" class="module-modal hidden">
+          <div class="module-modal-backdrop"></div>
+          <div class="module-modal-content">
+            <button class="module-modal-close" type="button">&times;</button>
+            <h3 id="module-modal-title"></h3>
+            <p id="module-modal-desc"></p>
+            <div id="module-modal-accounts" class="module-modal-accounts"></div>
           </div>
         </div>
       </div>
@@ -278,85 +430,38 @@
             </ul>
           </div>
           <div class="vision-card">
-            <div class="vision-tag t-ar">واجهة ربط فعلية (نموذج أولي)</div>
-            <div class="vision-tag t-en">Actual Mapping UI (Prototype)</div>
-
-            <form id="vision-mapping-form">
-              <div class="vision-row">
-                <label class="t-ar">برنامج الرؤية</label>
-                <label class="t-en">Vision Program</label>
-                <select name="program" required>
-                  <option value="" selected disabled>اختر برنامجًا / Select program</option>
-                  <option value="quality_of_life" class="t-ar">برنامج جودة الحياة</option>
-                  <option value="human_capabilities" class="t-ar">برنامج تنمية القدرات البشرية</option>
-                  <option value="ntp" class="t-ar">برنامج التحول الوطني</option>
-                  <option value="fis" class="t-ar">برنامج تطوير القطاع المالي</option>
-                </select>
-              </div>
-
-              <div class="vision-row">
-                <label class="t-ar">الهدف الاستراتيجي</label>
-                <label class="t-en">Strategic Goal</label>
-                <input
-                  type="text"
-                  name="strategic_goal"
-                  placeholder="مثال: تعزيز المشاركة المجتمعية..."
-                  required
-                />
-              </div>
-
-              <div class="vision-row">
-                <label class="t-ar">الهدف الفرعي</label>
-                <label class="t-en">Sub Goal</label>
-                <input
-                  type="text"
-                  name="sub_goal"
-                  placeholder="مثال: زيادة المشاركة في الفعاليات..."
-                />
-              </div>
-
-              <div class="vision-row">
-                <label class="t-ar">الهدف التفصيلي</label>
-                <label class="t-en">Detailed Goal</label>
-                <textarea
-                  name="detailed_goal"
-                  rows="2"
-                  placeholder="وصف تفصيلي للهدف المدعوم من المشروع أو الفعالية..."
-                ></textarea>
-              </div>
-
-              <div class="vision-row">
-                <label class="t-ar">الجهة الحكومية المرتبطة</label>
-                <label class="t-en">Government Entity</label>
-                <input
-                  type="text"
-                  name="government_entity"
-                  placeholder="مثال: وزارة الثقافة، وزارة الصحة..."
-                  required
-                />
-              </div>
-
-              <div class="vision-row">
-                <label class="t-ar">المنطقة وهيئة التطوير</label>
-                <label class="t-en">Region & Development Authority</label>
-                <select name="region" required>
-                  <option value="" selected disabled>اختر المنطقة / Select region</option>
-                  <option value="hail">منطقة حائل – هيئة تطوير حائل</option>
-                  <option value="riyadh">منطقة الرياض – هيئة تطوير الرياض</option>
-                  <option value="makkah">منطقة مكة المكرمة</option>
-                  <option value="eastern">المنطقة الشرقية</option>
-                </select>
-              </div>
-
-              <button class="btn btn-primary" type="submit">
-                <span class="t-ar">حفظ الربط (نموذج أولي)</span>
-                <span class="t-en">Save Mapping (Prototype)</span>
-              </button>
-
-              <p class="vision-note t-ar" id="vision-status-ar"></p>
-              <p class="vision-note t-en" id="vision-status-en"></p>
-            </form>
-          </div>
+            <div class="vision-tag t-ar">مثال واجهة الربط</div>
+            <div class="vision-tag t-en">Sample Mapping UI</div>
+            <div class="vision-row">
+              <label class="t-ar">برنامج الرؤية</label>
+              <label class="t-en">Vision Program</label>
+              <select disabled>
+                <option class="t-ar">برنامج جودة الحياة</option>
+                <option class="t-en">Quality of Life Program</option>
+              </select>
+            </div>
+            <div class="vision-row">
+              <label class="t-ar">الهدف الاستراتيجي</label>
+              <label class="t-en">Strategic Goal</label>
+              <select disabled>
+                <option class="t-ar">تعزيز المشاركة المجتمعية في الأنشطة الثقافية والترفيهية</option>
+                <option class="t-en">Enhance community participation in cultural & entertainment activities</option>
+              </select>
+            </div>
+            <div class="vision-row">
+              <label class="t-ar">المنطقة وهيئة التطوير</label>
+              <label class="t-en">Region & Development Authority</label>
+              <select disabled>
+                <option class="t-ar">منطقة حائل – هيئة تطوير حائل</option>
+                <option class="t-en">Hail Region – Hail Development Authority</option>
+              </select>
+            </div>
+            <p class="vision-note t-ar">
+              * هذه الواجهة للتوضيح فقط، ويقوم فريق التطوير بربطها فعليًا بقواعد بيانات برامج وأهداف الرؤية.
+            </p>
+            <p class="vision-note t-en">
+              * This mockup is for illustration only. The actual implementation will connect to live Vision 2030 data.
+            </p>
           </div>
         </div>
       </div>
@@ -454,43 +559,97 @@
     </div>
   </footer>
 
+  <!-- سكربتات المنصة -->
+  <script src="assets/js/core-modules.js"></script>
   <script src="assets/js/app.js"></script>
-
   <script>
-    // Vision 2030 Mapping Prototype Logic
-    document.addEventListener("DOMContentLoaded", function () {
-      var form = document.getElementById("vision-mapping-form");
-      if (!form) return;
+    // توليد بطاقات المكوّنات الأساسية من النواة المشتركة
+    document.addEventListener('DOMContentLoaded', function () {
+      const grid = document.getElementById('modules-grid');
+      const modules = window.HASIF_CORE_MODULES || [];
+      if (!grid || !modules.length) return;
 
-      var statusAr = document.getElementById("vision-status-ar");
-      var statusEn = document.getElementById("vision-status-en");
+      grid.innerHTML = '';
 
-      form.addEventListener("submit", function (e) {
-        e.preventDefault();
-
-        var formData = new FormData(form);
-        var payload = {
-          program: formData.get("program"),
-          strategic_goal: formData.get("strategic_goal"),
-          sub_goal: formData.get("sub_goal"),
-          detailed_goal: formData.get("detailed_goal"),
-          government_entity: formData.get("government_entity"),
-          region: formData.get("region")
-        };
-
-        console.log("Vision Mapping Payload:", payload);
-
-        if (statusAr) {
-          statusAr.textContent =
-            "تم حفظ نموذج الربط محليًا (كنموذج أولي). يمكن لاحقًا ربطه فعليًا بقواعد بيانات الرؤية.";
-        }
-        if (statusEn) {
-          statusEn.textContent =
-            "Vision mapping form captured locally (prototype). Later you can connect it to the real Vision 2030 database.";
-        }
+      modules.forEach(function (mod) {
+        const card = document.createElement('button');
+        card.type = 'button';
+        card.className = 'card module-card module-card-btn';
+        card.innerHTML = `
+          <h3 class="t-ar">${mod.nameAr}</h3>
+          <h3 class="t-en">${mod.nameEn}</h3>
+          <p class="t-ar">${mod.descriptionAr}</p>
+          <p class="t-en">${mod.descriptionEn}</p>
+        `;
+        card.addEventListener('click', function () {
+          openModuleModal(mod);
+        });
+        grid.appendChild(card);
       });
+
+      setupModuleModal();
     });
+
+    function setupModuleModal() {
+      const modal = document.getElementById('module-modal');
+      if (!modal) return;
+
+      const backdrop = modal.querySelector('.module-modal-backdrop');
+      const closeBtn = modal.querySelector('.module-modal-close');
+
+      const close = function () {
+        modal.classList.add('hidden');
+      };
+
+      if (backdrop) backdrop.addEventListener('click', close);
+      if (closeBtn) closeBtn.addEventListener('click', close);
+    }
+
+    function openModuleModal(mod) {
+      const modal = document.getElementById('module-modal');
+      if (!modal) return;
+
+      const title = document.getElementById('module-modal-title');
+      const desc = document.getElementById('module-modal-desc');
+      const accountsDiv = document.getElementById('module-modal-accounts');
+
+      title.textContent = mod.nameAr + ' / ' + mod.nameEn;
+      desc.textContent = mod.descriptionAr;
+
+      const mapAccountName = function (key) {
+        switch (key) {
+          case 'emirate': return 'حساب الإمارة';
+          case 'development': return 'حساب هيئة التطوير';
+          case 'government': return 'حساب الجهة الحكومية';
+          case 'private': return 'حساب القطاع الخاص';
+          case 'nonprofit': return 'حساب القطاع غير الربحي';
+          case 'university': return 'حساب الجامعات';
+          case 'donor': return 'حساب المانحين';
+          case 'individual': return 'حساب الأفراد';
+          default: return key;
+        }
+      };
+
+      accountsDiv.innerHTML = '';
+
+      if (Array.isArray(mod.usedByAccounts) && mod.usedByAccounts.length) {
+        const titleEl = document.createElement('div');
+        titleEl.className = 'module-modal-accounts-title t-ar';
+        titleEl.textContent = 'الحسابات التي تستخدم هذا المكوّن:';
+        accountsDiv.appendChild(titleEl);
+
+        const list = document.createElement('ul');
+        list.className = 'module-modal-accounts-list';
+        mod.usedByAccounts.forEach(function (accKey) {
+          const li = document.createElement('li');
+          li.textContent = mapAccountName(accKey);
+          list.appendChild(li);
+        });
+        accountsDiv.appendChild(list);
+      }
+
+      modal.classList.remove('hidden');
+    }
   </script>
 </body>
 </html>
-
